@@ -3,7 +3,7 @@ import * as datos from '../lib/datos.js'
 import { balanceDe, dinero } from '../lib/formato.js'
 import { CampoMonto, Confirmar, Fila } from '../componentes.jsx'
 
-export default function Etapa1({ cierre, setCierre, onSiguiente }) {
+export default function Etapa1({ cierre, setCierre, onSiguiente, onVerRegistros }) {
   const [valores, setValores] = useState({
     ventas: cierre.ventas, comision: cierre.comision, premios: cierre.premios,
   })
@@ -30,8 +30,11 @@ export default function Etapa1({ cierre, setCierre, onSiguiente }) {
   }
 
   return (
-    <section className="etapa">
-      <h2>Ventas del día</h2>
+    <section className="etapa aparecer">
+      <div className="etapa-titulo">
+        <h2>Ventas del día</h2>
+        <button className="btn secundario" onClick={onVerRegistros}>Ver registros</button>
+      </div>
 
       <div className="tarjeta">
         <CampoMonto etiqueta="Total de ventas" valor={valores.ventas} onCambio={(n) => cambiar('ventas', n)} autoFocus />

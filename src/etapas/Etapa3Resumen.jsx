@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
 import { dinero, fechaLarga, saldoDe } from '../lib/formato.js'
-import { Confirmar, Fila } from '../componentes.jsx'
+import { Cargando, Confirmar, Fila } from '../componentes.jsx'
 
 export default function Etapa3({ cierre, setCierre, onAtras }) {
   const [clientes, setClientes] = useState(null)
   const [revisado, setRevisado] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
   const [error, setError] = useState('')
+  const [finalizando, setFinalizando] = useState(false)
 
   useEffect(() => {
     datos.listarClientes(cierre.fecha).then(setClientes).catch((e) => setError(e.message))
@@ -21,17 +22,21 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
   const suma = (campo) => filas.reduce((t, f) => t + Number(f[campo] || 0), 0)
 
   async function finalizar() {
+    setConfirmando(false)
+    setFinalizando(true)
     try {
-      setCierre(await datos.finalizarCierre(cierre, clientes))
+      const minimo = new Promise((r) => setTimeout(r, 1200))
+      const [listo] = await Promise.all([datos.finalizarCierre(cierre, clientes), minimo])
+      setCierre(listo)
       window.scrollTo(0, 0)
     } catch (e) {
-      setConfirmando(false)
+      setFinalizando(false)
       setError(e.message)
     }
   }
 
   return (
-    <section className="etapa">
+    <section className="etapa aparecer">
       <h2>Resumen del día</h2>
       <p className="subtitulo">{fechaLarga(cierre.fecha)}</p>
       {error && <p className="aviso error">{error}</p>}
@@ -46,7 +51,7 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
 
       <div className="tarjeta">
         <h4>Clientes <small>({filas.length})</small></h4>
-        {clientes === null && <p className="cargando">Cargando…</p>}
+        {clientes === null && !error && <Cargando texto="Armando el resumen…" />}
         {filas.length > 0 && (
           <div className="tabla-scroll">
             <table className="tabla">
@@ -99,6 +104,7 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
           <p>Después de finalizar ya no se pueden cambiar los datos de hoy.</p>
         </Confirmar>
       )}
+      {finalizando && <Cargando velo texto="Guardando el cierre…" />}
     </section>
   )
 }

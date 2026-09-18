@@ -139,3 +139,22 @@ export async function finalizarCierre(cierre, clientes) {
   }
   return actualizarCierre(cierre.id, { etapa: 4, finalizado_en: new Date().toISOString() })
 }
+
+export async function listarCierres() {
+  await espera()
+  const db = leer()
+  return db.cierres
+    .filter((c) => c.vendedor_id === db.sesion)
+    .sort((a, b) => b.fecha.localeCompare(a.fecha))
+}
+
+export async function movimientosDelCierre(cierreId) {
+  await espera()
+  const db = leer()
+  return db.movimientos
+    .filter((m) => m.cierre_id === cierreId)
+    .map((m) => {
+      const c = db.clientes.find((x) => x.id === m.cliente_id)
+      return { ...m, nombre: c?.nombre, activo: c?.activo }
+    })
+}

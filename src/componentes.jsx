@@ -9,6 +9,32 @@ export function Logo({ tamano = 96 }) {
   return <img src={RUTA_LOGO} alt="AW" width={tamano} height={tamano} onError={() => setFalla(true)} />
 }
 
+// Pantalla de carga: el logo respira con un anillo que gira alrededor
+export function Cargando({ texto = 'Cargando…', pantalla, velo }) {
+  const tamano = pantalla || velo ? 88 : 56
+  const contenido = (
+    <div className={`cargador ${pantalla ? 'pantalla' : ''}`} role="status" aria-live="polite">
+      <div className="cargador-logo" style={{ '--t': `${tamano + 36}px` }}>
+        <span className="cargador-anillo" aria-hidden="true" />
+        <Logo tamano={tamano} />
+      </div>
+      <p>{texto}</p>
+    </div>
+  )
+  return velo ? <div className="velo velo-carga">{contenido}</div> : contenido
+}
+
+// Animación de apertura: el logo se "firma" de izquierda a derecha
+export function Intro({ saliendo }) {
+  return (
+    <div className={`intro ${saliendo ? 'saliendo' : ''}`} role="status" aria-label="Cargando AW_SistemCounting">
+      <div className="intro-logo"><Logo tamano={150} /></div>
+      <span className="intro-linea" aria-hidden="true" />
+      <p className="intro-nombre">AW_SistemCounting</p>
+    </div>
+  )
+}
+
 // Campo de dinero: guarda texto mientras se escribe y entrega número al padre
 export function CampoMonto({ etiqueta, valor, onCambio, onSalir, deshabilitado, autoFocus }) {
   const [texto, setTexto] = useState(valor ? String(valor) : '')

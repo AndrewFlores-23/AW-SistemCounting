@@ -82,3 +82,14 @@ export async function finalizarCierre(cierre, clientes) {
   if (faltantes.length) revisar(await sb.from('movimientos_cliente').insert(faltantes))
   return actualizarCierre(cierre.id, { etapa: 4, finalizado_en: new Date().toISOString() })
 }
+
+// ───── Registros (historial de cierres) ─────
+export async function listarCierres() {
+  return revisar(await sb.from('cierres').select('*').order('fecha', { ascending: false }))
+}
+
+export async function movimientosDelCierre(cierreId) {
+  const filas = revisar(await sb.from('movimientos_cliente')
+    .select('*, clientes(nombre, activo)').eq('cierre_id', cierreId).order('creado_en'))
+  return filas.map(({ clientes, ...m }) => ({ ...m, nombre: clientes?.nombre, activo: clientes?.activo }))
+}

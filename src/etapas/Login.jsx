@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as datos from '../lib/datos.js'
-import { Logo } from '../componentes.jsx'
+import { Cargando, Logo } from '../componentes.jsx'
 
 export default function Login({ onEntrar }) {
   const [usuario, setUsuario] = useState('')
@@ -44,6 +44,7 @@ export default function Login({ onEntrar }) {
         </button>
         {datos.modoDemo && <p className="pista">Demo: usuario <b>demo</b> · contraseña <b>1234</b></p>}
       </form>
+      {enviando && <Cargando velo texto="Entrando…" />}
     </div>
   )
 }

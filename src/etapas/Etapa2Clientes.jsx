@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as datos from '../lib/datos.js'
 import { dinero, saldoDe } from '../lib/formato.js'
-import { CampoMonto, Confirmar } from '../componentes.jsx'
+import { CampoMonto, Cargando, Confirmar } from '../componentes.jsx'
 
 export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   const [clientes, setClientes] = useState(null)
@@ -42,7 +42,7 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
     setClientes((lista) => lista.map((c) => (c.id === id ? { ...c, ...cambios } : c)))
 
   return (
-    <section className="etapa">
+    <section className="etapa aparecer">
       <div className="etapa-titulo">
         <h2>Clientes</h2>
         <button className="btn primario" onClick={() => setAgregando(true)}>+ Agregar</button>
@@ -50,7 +50,7 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
 
       {error && <p className="aviso error">{error}</p>}
       {agregando && <NuevoCliente onGuardar={crear} onCancelar={() => setAgregando(false)} />}
-      {clientes === null && <p className="cargando">Cargando clientes…</p>}
+      {clientes === null && !error && <Cargando texto="Cargando clientes…" />}
       {clientes?.length === 0 && !agregando && (
         <p className="vacio">Todavía no hay clientes. Agregá el primero.</p>
       )}
