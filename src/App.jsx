@@ -69,7 +69,7 @@ export default function App() {
       {apertura}
       <header className="barra">
         <div className="barra-marca">
-          <Logo tamano={34} />
+          <Logo tamano={90} />
           <div>
             <strong>{usuario.nombre}</strong>
             <small>{fechaLarga(fecha)}</small>

@@ -1,20 +1,17 @@
 import { useState } from 'react'
 import { aNumero } from './lib/formato.js'
 
-export const RUTA_LOGO = `${import.meta.env.BASE_URL}logo.png`
-
+// Logo de texto; `tamano` es el ancho aproximado en píxeles
 export function Logo({ tamano = 96 }) {
-  const [falla, setFalla] = useState(false)
-  if (falla) return <div className="logo-texto" style={{ fontSize: tamano * 0.45 }}>AW</div>
-  return <img src={RUTA_LOGO} alt="AW" width={tamano} height={tamano} onError={() => setFalla(true)} />
+  return <div className="logo-texto" style={{ fontSize: tamano * 0.2 }}>AWRiseCR</div>
 }
 
 // Pantalla de carga: el logo respira con un anillo que gira alrededor
 export function Cargando({ texto = 'Cargando…', pantalla, velo }) {
-  const tamano = pantalla || velo ? 88 : 56
+  const tamano = pantalla || velo ? 130 : 84
   const contenido = (
     <div className={`cargador ${pantalla ? 'pantalla' : ''}`} role="status" aria-live="polite">
-      <div className="cargador-logo" style={{ '--t': `${tamano + 36}px` }}>
+      <div className="cargador-logo" style={{ '--t': `${Math.round(tamano * 1.35)}px` }}>
         <span className="cargador-anillo" aria-hidden="true" />
         <Logo tamano={tamano} />
       </div>
@@ -28,7 +25,7 @@ export function Cargando({ texto = 'Cargando…', pantalla, velo }) {
 export function Intro({ saliendo }) {
   return (
     <div className={`intro ${saliendo ? 'saliendo' : ''}`} role="status" aria-label="Cargando AW_SistemCounting">
-      <div className="intro-logo"><Logo tamano={150} /></div>
+      <div className="intro-logo"><Logo tamano={260} /></div>
       <span className="intro-linea" aria-hidden="true" />
       <p className="intro-nombre">AW_SistemCounting</p>
     </div>

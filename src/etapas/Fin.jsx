@@ -4,7 +4,7 @@ import { Logo } from '../componentes.jsx'
 export default function Fin({ cierre, onSalir, onVerRegistros }) {
   return (
     <section className="fin aparecer">
-      <Logo tamano={88} />
+      <Logo tamano={170} />
       <div className="fin-check" aria-hidden="true">✓</div>
       <h2>Fin del cierre de hoy</h2>
       <p>{fechaLarga(cierre.fecha)}</p>

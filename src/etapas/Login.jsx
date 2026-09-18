@@ -23,7 +23,7 @@ export default function Login({ onEntrar }) {
   return (
     <div className="login">
       <form className="login-caja" onSubmit={entrar}>
-        <Logo tamano={120} />
+        <Logo tamano={190} />
         <h1>Inicio de sesión</h1>
         <p className="login-sistema">AW_SistemCounting</p>
 
