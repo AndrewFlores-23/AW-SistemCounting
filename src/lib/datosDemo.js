@@ -1,6 +1,6 @@
 // Modo demo: imita el esquema de Supabase dentro de localStorage.
 // Sirve para ver y probar el flujo antes de conectar el proyecto real.
-import { saldoDe, balanceDe } from './formato.js'
+import { saldoDe, balanceDe, diasEntre } from './formato.js'
 
 const CLAVE = 'aw_demo_db_v1'
 const USUARIOS = [
@@ -48,11 +48,11 @@ export async function obtenerCierre(fecha) {
   const db = leer()
   const pendiente = db.cierres
     .filter((x) => x.vendedor_id === db.sesion && x.fecha < fecha && x.etapa < 4)
-    .sort((a, b) => b.fecha.localeCompare(a.fecha))[0]
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))[0]
   if (pendiente) return pendiente
   let c = db.cierres.find((x) => x.vendedor_id === db.sesion && x.fecha === fecha)
   if (!c) {
-    c = { id: id(), vendedor_id: db.sesion, fecha, ventas: 0, comision: 0, premios: 0, balance: 0, etapa: 1 }
+    c = { id: id(), vendedor_id: db.sesion, fecha, ventas: 0, comision: 0, premios: 0, balance: 0, etapa: 1, tipo: 'normal' }
     db.cierres.push(c); anotar(db, 'cierres', 'INSERT', null, c); escribir(db)
   }
   return c
@@ -186,4 +186,46 @@ export async function eliminarContado(contadoId) {
   const fila = db.contado.find((j) => j.id === contadoId)
   db.contado = db.contado.filter((j) => j.id !== contadoId)
   anotar(db, 'jugadas_contado', 'DELETE', fila, null); escribir(db)
+}
+
+export async function diasFaltantes(fecha) {
+  await espera()
+  const db = leer()
+  const mios = db.cierres.filter((c) => c.vendedor_id === db.sesion)
+  if (mios.some((c) => c.fecha === fecha || (c.fecha < fecha && c.etapa < 4))) return []
+  const anteriores = mios.filter((c) => c.fecha < fecha).map((c) => c.fecha).sort()
+  return anteriores.length ? diasEntre(anteriores.at(-1), fecha) : []
+}
+
+export async function registrarDiasFaltantes({ atrasados, sinTrabajo }) {
+  const db = leer()
+  const base = { vendedor_id: db.sesion, ventas: 0, comision: 0, premios: 0, balance: 0 }
+  for (const fecha of atrasados) db.cierres.push({ ...base, id: id(), fecha, etapa: 1, tipo: 'atrasado' })
+  for (const fecha of sinTrabajo) {
+    db.cierres.push({ ...base, id: id(), fecha, etapa: 4, tipo: 'sin_trabajo', finalizado_en: new Date().toISOString() })
+  }
+  escribir(db)
+}
+
+export async function registrarAjuste(fecha, saldos, nota) {
+  const actuales = await listarClientes(fecha)
+  const db = leer()
+  const cierre = {
+    id: id(), vendedor_id: db.sesion, fecha, ventas: 0, comision: 0, premios: 0, balance: 0,
+    etapa: 4, tipo: 'ajuste', nota, finalizado_en: new Date().toISOString(),
+  }
+  db.cierres.push(cierre)
+  for (const s of saldos) {
+    const c = actuales.find((x) => x.id === s.cliente_id)
+    if (!c || c.saldo_anterior === s.saldo) continue
+    const m = {
+      id: id(), vendedor_id: db.sesion, cierre_id: cierre.id, cliente_id: c.id, fecha,
+      saldo_anterior: c.saldo_anterior, jugadas: 0, abono: 0, premios: 0,
+      ajuste: s.saldo - c.saldo_anterior,
+    }
+    m.saldo_total = saldoDe(m)
+    db.movimientos.push(m)
+  }
+  escribir(db)
+  return cierre.id
 }

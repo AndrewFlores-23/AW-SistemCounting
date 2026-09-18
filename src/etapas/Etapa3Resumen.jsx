@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
-import { calcularCuadre, dinero, fechaLarga, saldoDe } from '../lib/formato.js'
+import { calcularCuadre, dinero, fechaLarga, hoyCR, saldoDe } from '../lib/formato.js'
 import { Cargando, Confirmar, Cuadre, Fila, NotasDelDia, TablaContado } from '../componentes.jsx'
 
 export default function Etapa3({ cierre, setCierre, onAtras }) {
@@ -111,12 +111,13 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
       </div>
 
       {confirmando && (
-        <Confirmar titulo="¿Finalizar el cierre de hoy?" textoSi="Finalizar" textoNo="Cancelar"
+        <Confirmar titulo={cierre.fecha < hoyCR() ? `¿Finalizar el cierre del ${fechaLarga(cierre.fecha)}?` : '¿Finalizar el cierre de hoy?'}
+          textoSi="Finalizar" textoNo="Cancelar"
           onSi={finalizar} onNo={() => setConfirmando(false)}>
           {cuadre && !cuadre.cuadra && (
             <p className="aviso error">Ojo: los montos no cuadran con lo anotado al inicio.</p>
           )}
-          <p>Después de finalizar ya no se puede cambiar nada de este día. Solo se podrá consultar en Registros, y el próximo cierre se habilita mañana.</p>
+          <p>Después de finalizar ya no se puede cambiar nada de este día; solo se podrá consultar en Registros.</p>
         </Confirmar>
       )}
       {finalizando && <Cargando velo texto="Guardando el cierre…" />}

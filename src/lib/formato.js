@@ -39,7 +39,7 @@ export function aNumero(texto) {
 export const redondear = (n) => Math.round(n * 100) / 100
 export const balanceDe = (c) => redondear(aNumero(c.ventas) - aNumero(c.comision) - aNumero(c.premios))
 export const saldoDe = (m) =>
-  redondear(aNumero(m.saldo_anterior) + aNumero(m.jugadas) - aNumero(m.abono) - aNumero(m.premios))
+  redondear(aNumero(m.saldo_anterior) + aNumero(m.jugadas) - aNumero(m.abono) - aNumero(m.premios) + aNumero(m.ajuste))
 
 // Agrupa las jugadas de contado por cliente y saca los totales del día
 export function resumirContado(jugadas) {
@@ -71,4 +71,17 @@ export function calcularCuadre(cierre, clientes, contado) {
   // Positivo = sobra dinero; negativo = hace falta
   const dinero = redondear(ventas.diferencia - premios.diferencia)
   return { ventas, premios, dinero, cuadra: ventas.diferencia === 0 && premios.diferencia === 0 }
+}
+
+// Suma (o resta) días a una fecha 'AAAA-MM-DD'
+export function sumarDias(iso, n) {
+  const [a, m, d] = iso.split('-').map(Number)
+  return new Date(Date.UTC(a, m - 1, d + n)).toISOString().slice(0, 10)
+}
+
+// Días sin cierre entre el último registrado y hoy (sin incluir ninguno de los dos)
+export function diasEntre(ultimo, hoy) {
+  const dias = []
+  for (let f = sumarDias(ultimo, 1); f < hoy; f = sumarDias(f, 1)) dias.push(f)
+  return dias
 }

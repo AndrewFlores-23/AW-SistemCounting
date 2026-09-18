@@ -8,6 +8,7 @@ import Etapa2 from './etapas/Etapa2Clientes.jsx'
 import Etapa3 from './etapas/Etapa3Resumen.jsx'
 import Fin from './etapas/Fin.jsx'
 import Registros from './etapas/Registros.jsx'
+import Retomar from './etapas/Retomar.jsx'
 
 const PASOS = ['Ventas', 'Clientes', 'Resumen']
 
@@ -15,6 +16,7 @@ export default function App() {
   const [usuario, setUsuario] = useState(undefined) // undefined = cargando
   const [fecha, setFecha] = useState(hoyCR())
   const [cierre, setCierre] = useState(null)
+  const [faltantes, setFaltantes] = useState([]) // días sin cierre por retomar
   const [error, setError] = useState('')
   const [vista, setVista] = useState('cierre') // 'cierre' | 'registros'
   const [intro, setIntro] = useState('mostrando') // 'mostrando' | 'saliendo' | 'lista'
@@ -37,8 +39,12 @@ export default function App() {
 
   const cargarCierre = useCallback(async () => {
     setError('')
+    setCierre(null)
     try {
-      setCierre(await datos.obtenerCierre(fecha))
+      // Si hubo días sin usar la app, primero se decide cómo retomar
+      const dias = await datos.diasFaltantes(fecha)
+      setFaltantes(dias)
+      if (!dias.length) setCierre(await datos.obtenerCierre(fecha))
     } catch (e) {
       setError(e.message)
     }
@@ -54,6 +60,8 @@ export default function App() {
     setVista('cierre')
     setUsuario(null)
   }
+
+  const verRegistros = () => { setVista('registros'); window.scrollTo(0, 0) }
 
   async function irAEtapa(etapa) {
     setCierre(await datos.actualizarCierre(cierre.id, { etapa }))
@@ -93,14 +101,18 @@ export default function App() {
         {vista === 'registros' && <Registros onVolver={() => setVista('cierre')} />}
         {vista === 'cierre' && cierre && cierre.fecha < fecha && cierre.etapa < 4 && (
           <p className="aviso pendiente">
-            Tenés pendiente el cierre del <b>{fechaLarga(cierre.fecha)}</b>. Finalizalo para habilitar el de hoy.
+            {cierre.tipo === 'atrasado' ? 'Registrando el cierre atrasado del' : 'Tenés pendiente el cierre del'}{' '}
+            <b>{fechaLarga(cierre.fecha)}</b>. Finalizalo para seguir con el siguiente.
           </p>
         )}
-        {vista === 'cierre' && <>
+        {vista === 'cierre' && faltantes.length > 0 && (
+          <Retomar faltantes={faltantes} hoy={fecha} onListo={cargarCierre} onVerRegistros={verRegistros} />
+        )}
+        {vista === 'cierre' && !faltantes.length && <>
           {!cierre && !error && <Cargando texto="Preparando el cierre de hoy…" />}
           {cierre?.etapa === 1 && (
             <Etapa1 cierre={cierre} setCierre={setCierre} onSiguiente={() => irAEtapa(2)}
-              onVerRegistros={() => { setVista('registros'); window.scrollTo(0, 0) }} />
+              onVerRegistros={verRegistros} />
           )}
           {cierre?.etapa === 2 && <Etapa2 cierre={cierre} onAtras={() => irAEtapa(1)} onSiguiente={() => irAEtapa(3)} />}
           {cierre?.etapa === 3 && <Etapa3 cierre={cierre} setCierre={setCierre} onAtras={() => irAEtapa(2)} />}

@@ -11,7 +11,7 @@ export default function Fin({ cierre, hoy, onSalir, onVerRegistros, onContinuar 
       <p>{fechaLarga(cierre.fecha)}</p>
       <p className="fin-balance">Balance: <b>{dinero(cierre.balance)}</b></p>
       {eraPendiente
-        ? <button className="btn primario" onClick={onContinuar}>Empezar el cierre de hoy</button>
+        ? <button className="btn primario" onClick={onContinuar}>Seguir con el siguiente cierre</button>
         : <p className="fin-aviso">El próximo cierre se habilita mañana.</p>}
       <div className="acciones">
         <button className="btn secundario" onClick={onVerRegistros}>Ver registros</button>

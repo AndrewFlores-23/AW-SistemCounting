@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { diasEntre } from './formato.js'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const llave = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -40,7 +41,7 @@ export async function cerrarSesion() {
 // el de hoy se habilita cuando no hay pendientes.
 export async function obtenerCierre(fecha) {
   const pendiente = revisar(await sb.from('cierres').select('*')
-    .lt('fecha', fecha).lt('etapa', 4).order('fecha', { ascending: false }).limit(1).maybeSingle())
+    .lt('fecha', fecha).lt('etapa', 4).order('fecha', { ascending: true }).limit(1).maybeSingle())
   if (pendiente) return pendiente
   const existente = revisar(await sb.from('cierres').select('*').eq('fecha', fecha).maybeSingle())
   if (existente) return existente
@@ -117,4 +118,28 @@ export async function agregarContado(j) {
 
 export async function eliminarContado(id) {
   revisar(await sb.from('jugadas_contado').delete().eq('id', id))
+}
+
+// ───── Retomar después de días sin usar la app ─────
+// Solo hay días faltantes si hoy no tiene cierre y no queda ninguno pendiente
+export async function diasFaltantes(fecha) {
+  const ocupado = revisar(await sb.from('cierres').select('id')
+    .or(`fecha.eq.${fecha},and(fecha.lt.${fecha},etapa.lt.4)`).limit(1))
+  if (ocupado.length) return []
+  const ultimo = revisar(await sb.from('cierres').select('fecha')
+    .lt('fecha', fecha).order('fecha', { ascending: false }).limit(1).maybeSingle())
+  return ultimo ? diasEntre(ultimo.fecha, fecha) : []
+}
+
+export async function registrarDiasFaltantes({ atrasados, sinTrabajo }) {
+  const ahora = new Date().toISOString()
+  const filas = [
+    ...atrasados.map((fecha) => ({ fecha, tipo: 'atrasado' })),
+    ...sinTrabajo.map((fecha) => ({ fecha, tipo: 'sin_trabajo', etapa: 4, finalizado_en: ahora })),
+  ]
+  if (filas.length) revisar(await sb.from('cierres').insert(filas))
+}
+
+export async function registrarAjuste(fecha, saldos, nota) {
+  return revisar(await sb.rpc('registrar_ajuste', { p_fecha: fecha, p_saldos: saldos, p_nota: nota }))
 }

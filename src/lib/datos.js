@@ -13,4 +13,5 @@ export const {
   guardarMovimiento, finalizarCierre,
   listarCierres, movimientosDelCierre,
   listarContado, agregarContado, eliminarContado,
+  diasFaltantes, registrarDiasFaltantes, registrarAjuste,
 } = api

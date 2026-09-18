@@ -30,16 +30,20 @@ export default function Registros({ onVolver }) {
             <button className="registro" onClick={() => setElegido(c)}>
               <span className="registro-fecha">
                 {fechaLarga(c.fecha)}{' '}
-                {c.etapa === 4
-                  ? <em className="etiqueta ok">Finalizado</em>
-                  : <em className="etiqueta pendiente">{NOMBRE_ETAPA[c.etapa]}</em>}
+                <EtiquetaCierre c={c} />
               </span>
-              <span className={`registro-balance ${c.balance < 0 ? 'negativo' : ''}`}>{dinero(c.balance)}</span>
-              <span className="registro-detalle">
-                <span>Ventas {dinero(c.ventas)}</span>
-                <span>Comisión {dinero(c.comision)}</span>
-                <span>Premios {dinero(c.premios)}</span>
-              </span>
+              {c.tipo === 'sin_trabajo' || c.tipo === 'ajuste' ? (
+                <span className="registro-detalle">{c.tipo === 'ajuste' ? c.nota : 'No hubo ventas este día.'}</span>
+              ) : (
+                <>
+                  <span className={`registro-balance ${c.balance < 0 ? 'negativo' : ''}`}>{dinero(c.balance)}</span>
+                  <span className="registro-detalle">
+                    <span>Ventas {dinero(c.ventas)}</span>
+                    <span>Comisión {dinero(c.comision)}</span>
+                    <span>Premios {dinero(c.premios)}</span>
+                  </span>
+                </>
+              )}
             </button>
           </li>
         ))}
@@ -48,7 +52,72 @@ export default function Registros({ onVolver }) {
   )
 }
 
+function EtiquetaCierre({ c }) {
+  if (c.tipo === 'sin_trabajo') return <em className="etiqueta">Sin trabajo</em>
+  if (c.tipo === 'ajuste') return <em className="etiqueta nota">Ajuste de saldos</em>
+  return (
+    <>
+      {c.etapa === 4
+        ? <em className="etiqueta ok">Finalizado</em>
+        : <em className="etiqueta pendiente">{NOMBRE_ETAPA[c.etapa]}</em>}
+      {c.tipo === 'atrasado' && <> <em className="etiqueta">Registrado después</em></>}
+    </>
+  )
+}
+
 function DetalleCierre({ cierre, onVolver }) {
+  if (cierre.tipo === 'sin_trabajo') {
+    return (
+      <section className="etapa aparecer">
+        <button className="btn fantasma volver" onClick={onVolver}>← Todos los registros</button>
+        <h2>{fechaLarga(cierre.fecha)}</h2>
+        <p className="vacio">Día marcado como sin trabajo. No hubo ventas ni movimientos.</p>
+      </section>
+    )
+  }
+  if (cierre.tipo === 'ajuste') return <DetalleAjuste cierre={cierre} onVolver={onVolver} />
+  return <DetalleNormal cierre={cierre} onVolver={onVolver} />
+}
+
+function DetalleAjuste({ cierre, onVolver }) {
+  const [movs, setMovs] = useState(null)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    datos.movimientosDelCierre(cierre.id).then(setMovs).catch((e) => setError(e.message))
+  }, [cierre.id])
+
+  return (
+    <section className="etapa aparecer">
+      <button className="btn fantasma volver" onClick={onVolver}>← Todos los registros</button>
+      <h2>Ajuste de saldos</h2>
+      <p className="subtitulo">{cierre.nota} · Solo lectura</p>
+      {error && <p className="aviso error">{error}</p>}
+      <div className="tarjeta">
+        {movs === null && !error && <Cargando texto="Cargando…" />}
+        {movs?.length === 0 && <p className="vacio">No se cambió ningún saldo.</p>}
+        {movs?.length > 0 && (
+          <div className="tabla-scroll">
+            <table className="tabla">
+              <thead><tr><th>Cliente</th><th>En la app</th><th>Cuaderno</th><th>Diferencia</th></tr></thead>
+              <tbody>
+                {movs.map((m) => (
+                  <tr key={m.id}>
+                    <td>{m.nombre}</td>
+                    <td>{dinero(m.saldo_anterior)}</td>
+                    <td><b>{dinero(m.saldo_total)}</b></td>
+                    <td className={m.ajuste < 0 ? 'negativo' : ''}>{m.ajuste > 0 ? '+' : ''}{dinero(m.ajuste)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function DetalleNormal({ cierre, onVolver }) {
   const [movs, setMovs] = useState(null)
   const [contado, setContado] = useState(null)
   const [error, setError] = useState('')
@@ -64,7 +133,10 @@ function DetalleCierre({ cierre, onVolver }) {
     <section className="etapa aparecer">
       <button className="btn fantasma volver" onClick={onVolver}>← Todos los registros</button>
       <h2>{fechaLarga(cierre.fecha)}</h2>
-      <p className="subtitulo">{cierre.etapa === 4 ? 'Solo lectura · cierre finalizado' : 'Cierre sin finalizar'}</p>
+      <p className="subtitulo">
+        {cierre.etapa === 4 ? 'Solo lectura · cierre finalizado' : 'Cierre sin finalizar'}
+        {cierre.tipo === 'atrasado' && ' · registrado después'}
+      </p>
       {error && <p className="aviso error">{error}</p>}
 
       <div className="tarjeta">

@@ -331,6 +331,27 @@ input, textarea { font: inherit; }
 .cuadre-ref .distinto { color: var(--texto); font-weight: 600; }
 .dialogo .cuadre-msj { font-size: 1.05rem; }
 
+/* ───── Retomar ───── */
+.opcion p { color: var(--texto-2); font-size: .92rem; line-height: 1.45; }
+.lista-dias { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.lista-dias li {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 0; border-top: 1px solid var(--borde);
+}
+.lista-dias li:last-child { border-bottom: 1px solid var(--borde); }
+.lista-dias li.descanso > span { color: var(--texto-2); text-decoration: line-through; }
+.interruptor.chico { font-size: .85rem; font-weight: 500; color: var(--texto-2); gap: 8px; white-space: nowrap; flex: none; }
+.interruptor.chico .interruptor-pista { width: 38px; height: 22px; }
+.interruptor.chico .interruptor-pista::after { width: 14px; height: 14px; }
+.interruptor.chico input:checked + .interruptor-pista::after { transform: translateX(16px); }
+.lista-ajuste { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.lista-ajuste .tarjeta { gap: 10px; padding: 14px 16px; }
+.ajuste-cabeza { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ajuste-cabeza small { color: var(--texto-2); font-variant-numeric: tabular-nums; }
+.ajuste-dif { font-weight: 600; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.ajuste-dif.sube { color: #e3b341; }
+.ajuste-dif.baja { color: var(--positivo); }
+
 /* ───── Registros ───── */
 .lista-registros { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .registro {
