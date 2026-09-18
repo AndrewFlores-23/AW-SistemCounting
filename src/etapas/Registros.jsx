@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
 import { dinero, fechaLarga } from '../lib/formato.js'
-import { Cargando, Fila } from '../componentes.jsx'
+import { Cargando, Fila, NotasDelDia } from '../componentes.jsx'
 
 const NOMBRE_ETAPA = { 1: 'En ventas', 2: 'En clientes', 3: 'En resumen' }
 
@@ -111,6 +111,7 @@ function DetalleCierre({ cierre, onVolver }) {
           </div>
         )}
       </div>
+      {movs && <NotasDelDia filas={movs} />}
     </section>
   )
 }

@@ -13,6 +13,16 @@ export function fechaLarga(iso) {
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
 
+// 'martes 16'
+export function fechaCorta(iso) {
+  const [a, m, d] = iso.split('-').map(Number)
+  return new Intl.DateTimeFormat('es-CR', { weekday: 'long', day: 'numeric', timeZone: 'UTC' })
+    .format(new Date(Date.UTC(a, m - 1, d)))
+}
+
+// Nota vacía o solo espacios = sin nota
+export const limpiarNota = (t) => (t ?? '').trim() || null
+
 const colones = new Intl.NumberFormat('es-CR', {
   style: 'currency', currency: 'CRC', minimumFractionDigits: 0, maximumFractionDigits: 2,
 })

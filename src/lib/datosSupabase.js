@@ -69,6 +69,7 @@ export async function guardarMovimiento(m) {
   return revisar(await sb.from('movimientos_cliente').upsert({
     cierre_id: m.cierre_id, cliente_id: m.cliente_id, fecha: m.fecha,
     saldo_anterior: m.saldo_anterior, jugadas: m.jugadas, abono: m.abono, premios: m.premios,
+    nota: m.nota ?? null,
   }, { onConflict: 'cliente_id,fecha' }).select().single())
 }
 

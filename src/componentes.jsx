@@ -82,3 +82,16 @@ export function Fila({ etiqueta, valor, fuerte, tono }) {
     </div>
   )
 }
+
+export function NotasDelDia({ filas }) {
+  const conNota = filas.filter((f) => f.nota?.trim())
+  if (!conNota.length) return null
+  return (
+    <div className="tarjeta">
+      <h4>Notas <small>({conNota.length})</small></h4>
+      <ul className="lista-notas">
+        {conNota.map((f) => <li key={f.id}><b>{f.nombre}</b><p>{f.nota}</p></li>)}
+      </ul>
+    </div>
+  )
+}

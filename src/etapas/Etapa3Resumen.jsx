@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
 import { dinero, fechaLarga, saldoDe } from '../lib/formato.js'
-import { Cargando, Confirmar, Fila } from '../componentes.jsx'
+import { Cargando, Confirmar, Fila, NotasDelDia } from '../componentes.jsx'
 
 export default function Etapa3({ cierre, setCierre, onAtras }) {
   const [clientes, setClientes] = useState(null)
@@ -85,6 +85,8 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
         )}
         {filas.length === 0 && clientes !== null && <p className="vacio">Sin clientes registrados.</p>}
       </div>
+
+      <NotasDelDia filas={filas} />
 
       <label className="check">
         <input type="checkbox" checked={revisado} onChange={(e) => setRevisado(e.target.checked)} />

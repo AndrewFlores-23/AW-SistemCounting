@@ -81,7 +81,8 @@ export async function listarClientes(fecha) {
         tiene_historial: previos.length > 0,
         saldo_anterior: previos.length ? previos[0].saldo_total : c.saldo_inicial,
         mov_id: hoy?.id ?? null, jugadas: hoy?.jugadas ?? null, abono: hoy?.abono ?? null,
-        premios: hoy?.premios ?? null, saldo_total: hoy?.saldo_total ?? null,
+        premios: hoy?.premios ?? null, saldo_total: hoy?.saldo_total ?? null, nota: hoy?.nota ?? null,
+        nota_anterior: previos[0]?.nota?.trim() || null, fecha_nota_anterior: previos[0]?.fecha ?? null,
       }
     })
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import * as datos from '../lib/datos.js'
-import { dinero, saldoDe } from '../lib/formato.js'
+import { dinero, fechaCorta, limpiarNota, saldoDe } from '../lib/formato.js'
 import { CampoMonto, Cargando, Confirmar } from '../componentes.jsx'
 
 export default function Etapa2({ cierre, onAtras, onSiguiente }) {
@@ -118,6 +118,7 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
     jugadas: cliente.jugadas ?? 0,
     abono: cliente.abono ?? 0,
     premios: cliente.premios ?? 0,
+    nota: cliente.nota ?? '',
   })
   const [estado, setEstado] = useState('') // '', 'guardando', 'guardado', 'error'
   const temporizador = useRef()
@@ -161,7 +162,7 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
         await datos.actualizarSaldoInicial(cliente.id, m.saldo_anterior)
       }
       const fila = await datos.guardarMovimiento({
-        cierre_id: cierre.id, cliente_id: cliente.id, fecha: cierre.fecha, ...m,
+        cierre_id: cierre.id, cliente_id: cliente.id, fecha: cierre.fecha, ...m, nota: limpiarNota(m.nota),
       })
       onGuardado({ ...m, mov_id: fila.id, saldo_total: fila.saldo_total })
       setEstado('guardado')
@@ -177,12 +178,19 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
           {cliente.nombre}
           {!cliente.tiene_historial && <em className="etiqueta">Nuevo</em>}
           {conMovimiento && <em className="etiqueta ok">Registrado</em>}
+          {cliente.nota_anterior && <em className="etiqueta nota" title={cliente.nota_anterior}>📝 Nota</em>}
         </span>
         <span className={`cliente-saldo ${total < 0 ? 'negativo' : ''}`}>{dinero(total)}</span>
       </button>
 
       {abierto && (
         <div className="cliente-cuerpo">
+          {cliente.nota_anterior && (
+            <div className="recordatorio">
+              <small>Nota del {fechaCorta(cliente.fecha_nota_anterior)}</small>
+              <p>{cliente.nota_anterior}</p>
+            </div>
+          )}
           {cliente.tiene_historial ? (
             <div className="saldo-fijo">
               <span>Saldo anterior</span>
@@ -197,6 +205,17 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
             <CampoMonto etiqueta="Abono" valor={mov.abono} onCambio={(n) => cambiar('abono', n)} />
             <CampoMonto etiqueta="Premios" valor={mov.premios} onCambio={(n) => cambiar('premios', n)} />
           </div>
+
+          <label className="campo">
+            <span>Nota para mañana <small>(opcional)</small></span>
+            <textarea
+              rows={2}
+              maxLength={280}
+              placeholder="Ej.: quedó de abonar el viernes"
+              value={mov.nota}
+              onChange={(e) => cambiar('nota', e.target.value)}
+            />
+          </label>
 
           <div className={`total chico ${total < 0 ? 'negativo' : ''}`}>
             <span>Saldo total</span>

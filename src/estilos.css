@@ -20,7 +20,7 @@
 body { margin: 0; background: var(--fondo); color: var(--texto); }
 h1, h2, h3, h4, p { margin: 0; }
 button { font: inherit; cursor: pointer; }
-input { font: inherit; }
+input, textarea { font: inherit; }
 
 /* ───── Botones ───── */
 .btn {
@@ -40,11 +40,13 @@ input { font: inherit; }
 /* ───── Campos ───── */
 .campo { display: flex; flex-direction: column; gap: 6px; }
 .campo > span { font-size: .85rem; color: var(--texto-2); }
-.campo input {
+.campo input, .campo textarea {
   width: 100%; background: var(--fondo); color: var(--texto); border: 1px solid var(--borde);
   border-radius: 10px; padding: 12px 14px; font-size: 1.05rem; outline: none;
 }
-.campo input:focus { border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }
+.campo textarea { font-size: .95rem; resize: vertical; min-height: 64px; line-height: 1.4; }
+.campo > span small { color: var(--texto-2); opacity: .7; }
+.campo input:focus, .campo textarea:focus { border-color: var(--acento); box-shadow: 0 0 0 3px var(--acento-suave); }
 .campo-monto { position: relative; }
 .campo-monto i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-style: normal; color: var(--texto-2); }
 .campo-monto input { padding-left: 30px; font-variant-numeric: tabular-nums; }
@@ -136,6 +138,16 @@ input { font: inherit; }
   font-style: normal; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px;
   background: var(--acento-suave); color: var(--acento);
 }
+.etiqueta.nota { background: rgba(210, 153, 34, .15); color: #d29922; }
+.recordatorio {
+  border-left: 3px solid #d29922; background: rgba(210, 153, 34, .08);
+  border-radius: 0 10px 10px 0; padding: 10px 14px;
+}
+.recordatorio small { color: #d29922; font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+.recordatorio p { margin-top: 4px; white-space: pre-wrap; }
+.lista-notas { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.lista-notas li { border-left: 3px solid var(--borde); padding-left: 12px; }
+.lista-notas p { color: var(--texto-2); margin-top: 2px; white-space: pre-wrap; }
 .etiqueta.ok { background: rgba(63, 185, 80, .14); color: var(--positivo); }
 .cliente-cuerpo { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 14px; }
 .saldo-fijo {
