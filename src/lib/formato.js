@@ -56,3 +56,17 @@ export function resumirContado(jugadas) {
   const total = (campo) => redondear(clientes.reduce((t, c) => t + c[campo], 0))
   return { clientes, monto: total('monto'), premio: total('premio'), neto: total('neto'), cantidad: jugadas.length }
 }
+
+// Compara lo anotado en la etapa 1 con lo registrado en la etapa 2:
+// jugadas de clientes + contado = ventas; premios de clientes + contado = premios
+export function calcularCuadre(cierre, clientes, contado) {
+  const c = resumirContado(contado)
+  const sumar = (campo) => redondear(clientes.reduce((t, x) => t + aNumero(x[campo]), 0))
+  const fila = (anotado, deClientes, deContado) => {
+    const registrado = redondear(deClientes + deContado)
+    return { anotado: aNumero(anotado), registrado, clientes: deClientes, contado: deContado, diferencia: redondear(registrado - aNumero(anotado)) }
+  }
+  const ventas = fila(cierre.ventas, sumar('jugadas'), c.monto)
+  const premios = fila(cierre.premios, sumar('premios'), c.premio)
+  return { ventas, premios, cuadra: ventas.diferencia === 0 && premios.diferencia === 0 }
+}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as datos from '../lib/datos.js'
-import { dinero, fechaCorta, limpiarNota, resumirContado, saldoDe } from '../lib/formato.js'
-import { CampoMonto, Cargando, Confirmar } from '../componentes.jsx'
+import { calcularCuadre, dinero, fechaCorta, limpiarNota, resumirContado, saldoDe } from '../lib/formato.js'
+import { CampoMonto, Cargando, Confirmar, Cuadre } from '../componentes.jsx'
 import Contado from './Contado.jsx'
 
 export default function Etapa2({ cierre, onAtras, onSiguiente }) {
@@ -18,9 +18,13 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
     datos.listarContado(cierre.id).then(setContado).catch((e) => setError(e.message))
   }, [cierre.id])
 
+  const [alertaCuadre, setAlertaCuadre] = useState(false)
+
   async function continuar() {
     await Promise.all([...guardadosPendientes.current].map((vaciar) => vaciar()))
-    onSiguiente()
+    // Si lo registrado no coincide con la etapa 1, se avisa antes de seguir
+    if (!calcularCuadre(cierre, clientes ?? [], contado).cuadra) setAlertaCuadre(true)
+    else onSiguiente()
   }
 
   async function cargar() {
@@ -60,6 +64,7 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
     )
   }
   const resumenContado = resumirContado(contado)
+  const cuadre = calcularCuadre(cierre, clientes ?? [], contado)
 
   return (
     <section className="etapa aparecer">
@@ -67,6 +72,8 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
         <h2>Clientes</h2>
         <button className="btn primario" onClick={() => setAgregando(true)}>+ Agregar</button>
       </div>
+
+      {clientes !== null && <Cuadre cuadre={cuadre} />}
 
       {error && <p className="aviso error">{error}</p>}
       {agregando && <NuevoCliente onGuardar={crear} onCancelar={() => setAgregando(false)} />}
@@ -85,6 +92,7 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
             onAlternar={() => setAbierto(abierto === c.id ? null : c.id)}
             onEliminar={() => setPorEliminar(c)}
             onGuardado={(cambios) => actualizarLocal(c.id, cambios)}
+            onCambio={(cambios) => actualizarLocal(c.id, cambios)}
             pendientes={guardadosPendientes.current}
           />
         ))}
@@ -108,6 +116,15 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
         <button className="btn secundario" onClick={onAtras}>Atrás</button>
         <button className="btn primario" onClick={continuar}>Ver resumen</button>
       </div>
+
+      {alertaCuadre && (
+        <Confirmar titulo="Los montos no coinciden" textoSi="Continuar igual" textoNo="Revisar"
+          onNo={() => setAlertaCuadre(false)}
+          onSi={() => { setAlertaCuadre(false); onSiguiente() }}>
+          <Cuadre cuadre={cuadre} compacto />
+          <p className="nota-alerta">Lo registrado en clientes y contado no es igual a la venta y los premios anotados en la etapa 1.</p>
+        </Confirmar>
+      )}
 
       {porEliminar && (
         <Confirmar titulo={`¿Eliminar a ${porEliminar.nombre}?`} textoSi="Eliminar" textoNo="Cancelar" peligro
@@ -146,7 +163,7 @@ function NuevoCliente({ onGuardar, onCancelar }) {
   )
 }
 
-function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado, pendientes }) {
+function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado, onCambio, pendientes }) {
   const [mov, setMov] = useState({
     saldo_anterior: cliente.saldo_anterior,
     jugadas: cliente.jugadas ?? 0,
@@ -177,6 +194,7 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
   function cambiar(campo, n) {
     const nuevo = { ...mov, [campo]: n }
     setMov(nuevo)
+    onCambio({ jugadas: nuevo.jugadas, premios: nuevo.premios, abono: nuevo.abono, saldo_anterior: nuevo.saldo_anterior })
     pendiente.current = [nuevo, campo === 'saldo_anterior' || pendiente.current?.[1] === 'saldo_anterior' ? 'saldo_anterior' : campo]
     clearTimeout(temporizador.current)
     temporizador.current = setTimeout(() => guardar(...pendiente.current), 600)

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
-import { dinero, fechaLarga, saldoDe } from '../lib/formato.js'
-import { Cargando, Confirmar, Fila, NotasDelDia, TablaContado } from '../componentes.jsx'
+import { calcularCuadre, dinero, fechaLarga, saldoDe } from '../lib/formato.js'
+import { Cargando, Confirmar, Cuadre, Fila, NotasDelDia, TablaContado } from '../componentes.jsx'
 
 export default function Etapa3({ cierre, setCierre, onAtras }) {
   const [clientes, setClientes] = useState(null)
@@ -21,6 +21,7 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
     const m = { saldo_anterior: c.saldo_anterior, jugadas: c.jugadas ?? 0, abono: c.abono ?? 0, premios: c.premios ?? 0 }
     return { ...c, ...m, saldo_total: saldoDe(m) }
   })
+  const cuadre = clientes && contado ? calcularCuadre(cierre, filas, contado) : null
   const suma = (campo) => filas.reduce((t, f) => t + Number(f[campo] || 0), 0)
 
   async function finalizar() {
@@ -50,6 +51,8 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
         <Fila etiqueta="Premios" valor={`− ${dinero(cierre.premios)}`} />
         <Fila etiqueta="Balance" valor={dinero(cierre.balance)} fuerte />
       </div>
+
+      {cuadre && <Cuadre cuadre={cuadre} />}
 
       <div className="tarjeta">
         <h4>Clientes <small>({filas.length})</small></h4>
@@ -110,6 +113,9 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
       {confirmando && (
         <Confirmar titulo="¿Finalizar el cierre de hoy?" textoSi="Finalizar" textoNo="Cancelar"
           onSi={finalizar} onNo={() => setConfirmando(false)}>
+          {cuadre && !cuadre.cuadra && (
+            <p className="aviso error">Ojo: los montos registrados no coinciden con la venta y los premios de la etapa 1.</p>
+          )}
           <p>Después de finalizar ya no se puede cambiar nada de este día. Solo se podrá consultar en Registros, y el próximo cierre se habilita mañana.</p>
         </Confirmar>
       )}
