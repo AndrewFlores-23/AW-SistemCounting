@@ -323,8 +323,10 @@ input, textarea { font: inherit; }
 .cuadre.sobra { background: rgba(210, 153, 34, .08); border-color: rgba(210, 153, 34, .45); }
 .cuadre-msj { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .cuadre.ok .cuadre-msj { color: var(--positivo); }
-.cuadre.falta .cuadre-msj { color: var(--negativo); }
-.cuadre.sobra .cuadre-msj { color: #e3b341; }
+.cuadre-lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.cuadre-lista .cuadre-msj { font-size: 1.05rem; }
+.cuadre-msj.falta { color: var(--negativo); }
+.cuadre-msj.sobra { color: #e3b341; }
 .cuadre-ref { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: .85rem; color: var(--texto-2); font-variant-numeric: tabular-nums; }
 .cuadre-ref span { margin-right: 2px; }
 .cuadre-ref small { font-size: .8rem; }

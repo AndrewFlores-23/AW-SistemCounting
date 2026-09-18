@@ -127,21 +127,36 @@ export function TablaContado({ jugadas }) {
   )
 }
 
-// Cuadre: un solo mensaje grande; debajo, jugado y premios como referencia
+// Cuadre: jugadas y premios por separado; si no coinciden, cuánto falta o sobra de cada uno
 export function Cuadre({ cuadre }) {
-  const tono = cuadre.cuadra ? 'ok' : cuadre.dinero > 0 ? 'sobra' : 'falta'
-  const mensaje = cuadre.cuadra ? '✓ Cuadra'
-    : cuadre.dinero > 0 ? `Sobra dinero · ${dinero(cuadre.dinero)}`
-    : cuadre.dinero < 0 ? `Hace falta dinero · ${dinero(-cuadre.dinero)}`
-    : 'Revisá los montos'
+  const tono = cuadre.cuadra ? 'ok'
+    : cuadre.ventas.diferencia < 0 || cuadre.premios.diferencia < 0 ? 'falta' : 'sobra'
   return (
     <div className={`cuadre ${tono}`} role="status" aria-live="polite">
-      <p className="cuadre-msj">{mensaje}</p>
+      {cuadre.cuadra ? (
+        <p className="cuadre-msj">✓ Cuadra</p>
+      ) : (
+        <ul className="cuadre-lista">
+          <MensajeCuadre de="jugadas" f={cuadre.ventas} />
+          <MensajeCuadre de="premios" f={cuadre.premios} />
+        </ul>
+      )}
       <div className="cuadre-ref">
         <FilaCuadre titulo="Jugado" f={cuadre.ventas} />
         <FilaCuadre titulo="Premios" f={cuadre.premios} />
       </div>
     </div>
+  )
+}
+
+// Menos registrado que lo anotado al inicio = hace falta; más = sobra
+function MensajeCuadre({ de, f }) {
+  if (f.diferencia === 0) return null
+  const falta = f.diferencia < 0
+  return (
+    <li className={`cuadre-msj ${falta ? 'falta' : 'sobra'}`}>
+      {falta ? 'Hace falta dinero' : 'Sobra dinero'} {dinero(Math.abs(f.diferencia))} de {de}
+    </li>
   )
 }
 
