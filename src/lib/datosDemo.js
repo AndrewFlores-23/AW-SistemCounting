@@ -14,7 +14,7 @@ const leer = () => {
     return vacia()
   }
 }
-const vacia = () => ({ sesion: null, cierres: [], clientes: [], movimientos: [], contado: [], bitacora: [] })
+const vacia = () => ({ sesion: null, cierres: [], clientes: [], movimientos: [], contado: [], recordatorios: [], bitacora: [] })
 const escribir = (db) => localStorage.setItem(CLAVE, JSON.stringify(db))
 const id = () => crypto.randomUUID()
 const espera = () => new Promise((r) => setTimeout(r, 120))
@@ -228,4 +228,57 @@ export async function registrarAjuste(fecha, saldos, nota) {
   }
   escribir(db)
   return cierre.id
+}
+
+const nombreDe = (db, clienteId) => db.clientes.find((c) => c.id === clienteId)
+const entre = (desde, hasta) => (x) => x.fecha >= desde && x.fecha <= hasta
+
+export async function guardarRecordatorio(r) {
+  const db = leer()
+  db.recordatorios ??= []
+  const fila = { hecho: false, ...db.recordatorios.find((x) => x.movimiento_id === r.movimiento_id), ...r, hecho: false }
+  fila.id ??= id()
+  db.recordatorios = db.recordatorios.filter((x) => x.movimiento_id !== r.movimiento_id).concat(fila)
+  escribir(db)
+}
+
+export async function quitarRecordatorio(movimientoId) {
+  const db = leer()
+  db.recordatorios = (db.recordatorios ?? []).filter((x) => x.movimiento_id !== movimientoId)
+  escribir(db)
+}
+
+export async function listarRecordatorios() {
+  await espera()
+  const db = leer()
+  return (db.recordatorios ?? [])
+    .filter((r) => !r.hecho && nombreDe(db, r.cliente_id)?.vendedor_id === db.sesion)
+    .map((r) => ({ ...r, nombre: nombreDe(db, r.cliente_id)?.nombre }))
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || (a.hora ?? '').localeCompare(b.hora ?? ''))
+}
+
+export async function marcarRecordatorio(recordatorioId) {
+  const db = leer()
+  const r = db.recordatorios.find((x) => x.id === recordatorioId)
+  r.hecho = true; r.hecho_en = new Date().toISOString()
+  escribir(db)
+}
+
+export async function cierresEntre(desde, hasta) {
+  await espera()
+  const db = leer()
+  return db.cierres.filter((c) => c.vendedor_id === db.sesion).filter(entre(desde, hasta))
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+}
+
+export async function movimientosEntre(desde, hasta) {
+  const db = leer()
+  return db.movimientos.filter((m) => m.vendedor_id === db.sesion).filter(entre(desde, hasta))
+    .map((m) => ({ ...m, nombre: nombreDe(db, m.cliente_id)?.nombre, activo: nombreDe(db, m.cliente_id)?.activo }))
+}
+
+export async function contadoEntre(desde, hasta) {
+  const db = leer()
+  return (db.contado ?? []).filter((j) => j.vendedor_id === db.sesion).filter(entre(desde, hasta))
+    .map((j) => ({ ...j, nombre: nombreDe(db, j.cliente_id)?.nombre }))
 }

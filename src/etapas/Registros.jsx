@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
 import { dinero, fechaLarga } from '../lib/formato.js'
 import { Cargando, Fila, NotasDelDia, TablaContado } from '../componentes.jsx'
+import ResumenMes from './ResumenMes.jsx'
 
 const NOMBRE_ETAPA = { 1: 'En ventas', 2: 'En clientes', 3: 'En resumen' }
 
@@ -9,6 +10,7 @@ export default function Registros({ onVolver }) {
   const [cierres, setCierres] = useState(null)
   const [elegido, setElegido] = useState(null)
   const [error, setError] = useState('')
+  const [pestana, setPestana] = useState('dias') // 'dias' | 'mes'
 
   useEffect(() => {
     datos.listarCierres().then(setCierres).catch((e) => setError(e.message))
@@ -20,6 +22,12 @@ export default function Registros({ onVolver }) {
     <section className="etapa aparecer">
       <button className="btn fantasma volver" onClick={onVolver}>← Volver al cierre</button>
       <h2>Registros</h2>
+      <div className="pestanas" role="tablist">
+        <button role="tab" aria-selected={pestana === 'dias'} onClick={() => setPestana('dias')}>Por día</button>
+        <button role="tab" aria-selected={pestana === 'mes'} onClick={() => setPestana('mes')}>Resumen del mes</button>
+      </div>
+      {pestana === 'mes' && <ResumenMes />}
+      {pestana === 'dias' && <>
       {error && <p className="aviso error">{error}</p>}
       {cierres === null && !error && <Cargando texto="Buscando registros…" />}
       {cierres?.length === 0 && <p className="vacio">Todavía no hay cierres guardados.</p>}
@@ -48,6 +56,7 @@ export default function Registros({ onVolver }) {
           </li>
         ))}
       </ul>
+      </>}
     </section>
   )
 }

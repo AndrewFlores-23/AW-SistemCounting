@@ -3,6 +3,8 @@ import * as datos from '../lib/datos.js'
 import { calcularCuadre, dinero, fechaCorta, limpiarNota, resumirContado, saldoDe } from '../lib/formato.js'
 import { CampoMonto, Cargando, Confirmar, Cuadre } from '../componentes.jsx'
 import Contado from './Contado.jsx'
+import { detectarRecordatorio, horaBonita } from '../lib/fechasNota.js'
+import { cuentasAltas, promediosClientes, rangoPromedio } from '../lib/analisis.js'
 
 export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   const [clientes, setClientes] = useState(null)
@@ -14,9 +16,17 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   const [modo, setModo] = useState('clientes') // 'clientes' | 'contado'
   const [contado, setContado] = useState([])
 
+  const [promedios, setPromedios] = useState({})
+
   useEffect(() => {
     datos.listarContado(cierre.id).then(setContado).catch((e) => setError(e.message))
   }, [cierre.id])
+
+  // Promedio de jugadas de los últimos 30 días, para marcar cuentas altas
+  useEffect(() => {
+    const [desde, hasta] = rangoPromedio(cierre.fecha)
+    datos.movimientosEntre(desde, hasta).then((m) => setPromedios(promediosClientes(m))).catch(() => {})
+  }, [cierre.fecha])
 
   const [alertaCuadre, setAlertaCuadre] = useState(false)
 
@@ -65,6 +75,9 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   }
   const resumenContado = resumirContado(contado)
   const cuadre = calcularCuadre(cierre, clientes ?? [], contado)
+  const altas = new Set(cuentasAltas((clientes ?? []).map((c) => ({
+    ...c, saldo_total: saldoDe({ saldo_anterior: c.saldo_anterior, jugadas: c.jugadas ?? 0, abono: c.abono ?? 0, premios: c.premios ?? 0 }),
+  })), promedios).map((a) => a.id))
 
   return (
     <section className="etapa aparecer">
@@ -88,6 +101,7 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
             key={c.id}
             cliente={c}
             cierre={cierre}
+            cuentaAlta={altas.has(c.id)}
             abierto={abierto === c.id}
             onAlternar={() => setAbierto(abierto === c.id ? null : c.id)}
             onEliminar={() => setPorEliminar(c)}
@@ -162,7 +176,8 @@ function NuevoCliente({ onGuardar, onCancelar }) {
   )
 }
 
-function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado, onCambio, pendientes }) {
+function Cliente({ cliente, cierre, cuentaAlta, abierto, onAlternar, onEliminar, onGuardado, onCambio, pendientes }) {
+  const notaGuardada = useRef(limpiarNota(cliente.nota))
   const [mov, setMov] = useState({
     saldo_anterior: cliente.saldo_anterior,
     jugadas: cliente.jugadas ?? 0,
@@ -216,6 +231,17 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
         cierre_id: cierre.id, cliente_id: cliente.id, fecha: cierre.fecha, ...m, nota: limpiarNota(m.nota),
       })
       onGuardado({ ...m, mov_id: fila.id, saldo_total: fila.saldo_total })
+      // La nota se vuelve recordatorio (con la fecha que traiga, o para mañana)
+      const nota = limpiarNota(m.nota)
+      if (nota !== notaGuardada.current) {
+        if (nota) {
+          const r = detectarRecordatorio(nota, cierre.fecha)
+          await datos.guardarRecordatorio({ movimiento_id: fila.id, cliente_id: cliente.id, texto: nota, fecha: r.fecha, hora: r.hora })
+        } else {
+          await datos.quitarRecordatorio(fila.id)
+        }
+        notaGuardada.current = nota
+      }
       setEstado('guardado')
     } catch {
       setEstado('error')
@@ -229,6 +255,7 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
           {cliente.nombre}
           {!cliente.tiene_historial && <em className="etiqueta">Nuevo</em>}
           {conMovimiento && <em className="etiqueta ok">Registrado</em>}
+          {cuentaAlta && <em className="etiqueta alta">⚠ Cuenta alta</em>}
           {cliente.nota_anterior && <em className="etiqueta nota" title={cliente.nota_anterior}>📝 Nota</em>}
         </span>
         <span className={`cliente-saldo ${total < 0 ? 'negativo' : ''}`}>{dinero(total)}</span>
@@ -266,6 +293,7 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
               value={mov.nota}
               onChange={(e) => cambiar('nota', e.target.value)}
             />
+            {limpiarNota(mov.nota) && <AvisoRecordatorio nota={mov.nota} fecha={cierre.fecha} />}
           </label>
 
           <div className={`total chico ${total < 0 ? 'negativo' : ''}`}>
@@ -284,5 +312,15 @@ function Cliente({ cliente, cierre, abierto, onAlternar, onEliminar, onGuardado,
         </div>
       )}
     </li>
+  )
+}
+
+function AvisoRecordatorio({ nota, fecha }) {
+  const r = detectarRecordatorio(nota, fecha)
+  return (
+    <small className="aviso-recordatorio">
+      🔔 Recordatorio: {fechaCorta(r.fecha)}{r.hora && ` · ${horaBonita(r.hora)}`}
+      {!r.detectada && ' (no vi una fecha en la nota)'}
+    </small>
   )
 }

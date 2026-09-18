@@ -143,3 +143,43 @@ export async function registrarDiasFaltantes({ atrasados, sinTrabajo }) {
 export async function registrarAjuste(fecha, saldos, nota) {
   return revisar(await sb.rpc('registrar_ajuste', { p_fecha: fecha, p_saldos: saldos, p_nota: nota }))
 }
+
+// ───── Recordatorios (salen de las notas de los clientes) ─────
+export async function guardarRecordatorio(r) {
+  revisar(await sb.from('recordatorios').upsert({
+    movimiento_id: r.movimiento_id, cliente_id: r.cliente_id, texto: r.texto,
+    fecha: r.fecha, hora: r.hora, hecho: false, hecho_en: null,
+  }, { onConflict: 'movimiento_id' }))
+}
+
+export async function quitarRecordatorio(movimientoId) {
+  revisar(await sb.from('recordatorios').delete().eq('movimiento_id', movimientoId))
+}
+
+export async function listarRecordatorios() {
+  const filas = revisar(await sb.from('recordatorios').select('*, clientes(nombre)')
+    .eq('hecho', false).order('fecha').order('hora', { nullsFirst: true }))
+  return filas.map(({ clientes, ...r }) => ({ ...r, nombre: clientes?.nombre }))
+}
+
+export async function marcarRecordatorio(id) {
+  revisar(await sb.from('recordatorios').update({ hecho: true, hecho_en: new Date().toISOString() }).eq('id', id))
+}
+
+// ───── Consultas por rango (resumen del mes y promedio de clientes) ─────
+export async function cierresEntre(desde, hasta) {
+  return revisar(await sb.from('cierres').select('*').gte('fecha', desde).lte('fecha', hasta).order('fecha'))
+}
+
+export async function movimientosEntre(desde, hasta) {
+  const filas = revisar(await sb.from('movimientos_cliente')
+    .select('cliente_id, fecha, jugadas, abono, premios, ajuste, saldo_total, clientes(nombre, activo)')
+    .gte('fecha', desde).lte('fecha', hasta).order('fecha'))
+  return filas.map(({ clientes, ...m }) => ({ ...m, nombre: clientes?.nombre, activo: clientes?.activo }))
+}
+
+export async function contadoEntre(desde, hasta) {
+  const filas = revisar(await sb.from('jugadas_contado').select('cliente_id, fecha, monto, premio, clientes(nombre)')
+    .gte('fecha', desde).lte('fecha', hasta))
+  return filas.map(({ clientes, ...j }) => ({ ...j, nombre: clientes?.nombre }))
+}

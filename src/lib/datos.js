@@ -14,4 +14,6 @@ export const {
   listarCierres, movimientosDelCierre,
   listarContado, agregarContado, eliminarContado,
   diasFaltantes, registrarDiasFaltantes, registrarAjuste,
+  guardarRecordatorio, quitarRecordatorio, listarRecordatorios, marcarRecordatorio,
+  cierresEntre, movimientosEntre, contadoEntre,
 } = api

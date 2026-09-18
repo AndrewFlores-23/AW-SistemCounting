@@ -9,6 +9,8 @@ import Etapa3 from './etapas/Etapa3Resumen.jsx'
 import Fin from './etapas/Fin.jsx'
 import Registros from './etapas/Registros.jsx'
 import Retomar from './etapas/Retomar.jsx'
+import Notificaciones from './etapas/Notificaciones.jsx'
+import { cuentasAltas, promediosClientes, rangoPromedio } from './lib/analisis.js'
 
 const PASOS = ['Ventas', 'Clientes', 'Resumen']
 
@@ -17,6 +19,8 @@ export default function App() {
   const [fecha, setFecha] = useState(hoyCR())
   const [cierre, setCierre] = useState(null)
   const [faltantes, setFaltantes] = useState([]) // días sin cierre por retomar
+  const [avisos, setAvisos] = useState(null)
+  const [verAvisos, setVerAvisos] = useState(false)
   const [error, setError] = useState('')
   const [vista, setVista] = useState('cierre') // 'cierre' | 'registros'
   const [intro, setIntro] = useState('mostrando') // 'mostrando' | 'saliendo' | 'lista'
@@ -55,6 +59,32 @@ export default function App() {
     else setCierre(null)
   }, [usuario, cargarCierre])
 
+  // Recordatorios de notas + cuentas altas (no bloquean el cierre si fallan)
+  const cargarAvisos = useCallback(async () => {
+    try {
+      const [desde, hasta] = rangoPromedio(fecha)
+      const [recordatorios, clientes, movs] = await Promise.all([
+        datos.listarRecordatorios(), datos.listarClientes(fecha), datos.movimientosEntre(desde, hasta),
+      ])
+      setAvisos({ recordatorios, altas: cuentasAltas(clientes, promediosClientes(movs)) })
+    } catch {
+      setAvisos((a) => a ?? { recordatorios: [], altas: [] })
+    }
+  }, [fecha])
+
+  useEffect(() => {
+    if (usuario) cargarAvisos()
+  }, [usuario, cargarAvisos, cierre?.etapa, vista])
+
+  async function marcarAviso(id) {
+    await datos.marcarRecordatorio(id)
+    cargarAvisos()
+  }
+
+  const pendientesHoy = avisos
+    ? avisos.recordatorios.filter((r) => r.fecha <= fecha).length + avisos.altas.length
+    : 0
+
   async function salir() {
     await datos.cerrarSesion()
     setVista('cierre')
@@ -83,8 +113,18 @@ export default function App() {
             <small>{fechaLarga(fecha)}</small>
           </div>
         </div>
-        <button className="btn fantasma" onClick={salir}>Salir</button>
+        <div className="barra-acciones">
+          <button className="campana" onClick={() => { setVerAvisos(true); cargarAvisos() }}
+            aria-label={pendientesHoy ? `Notificaciones: ${pendientesHoy} pendientes` : 'Notificaciones'}>
+            <IconoCampana />
+            {pendientesHoy > 0 && <span className="insignia">{pendientesHoy > 9 ? '9+' : pendientesHoy}</span>}
+          </button>
+          <button className="btn fantasma" onClick={salir}>Salir</button>
+        </div>
       </header>
+      {verAvisos && (
+        <Notificaciones avisos={avisos} hoy={fecha} onMarcar={marcarAviso} onCerrar={() => setVerAvisos(false)} />
+      )}
 
       {vista === 'cierre' && cierre && cierre.etapa < 4 && (
         <ol className="pasos">
@@ -125,5 +165,15 @@ export default function App() {
 
       {datos.modoDemo && <p className="marca-demo">Modo demo · datos solo en este dispositivo</p>}
     </div>
+  )
+}
+
+function IconoCampana() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
   )
 }
