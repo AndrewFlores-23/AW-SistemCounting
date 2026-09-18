@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import * as datos from '../lib/datos.js'
-import { dinero, fechaCorta, limpiarNota, saldoDe } from '../lib/formato.js'
+import { dinero, fechaCorta, limpiarNota, resumirContado, saldoDe } from '../lib/formato.js'
 import { CampoMonto, Cargando, Confirmar } from '../componentes.jsx'
+import Contado from './Contado.jsx'
 
 export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   const [clientes, setClientes] = useState(null)
@@ -10,6 +11,12 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   const [porEliminar, setPorEliminar] = useState(null)
   const [error, setError] = useState('')
   const guardadosPendientes = useRef(new Set())
+  const [modo, setModo] = useState('clientes') // 'clientes' | 'contado'
+  const [contado, setContado] = useState([])
+
+  useEffect(() => {
+    datos.listarContado(cierre.id).then(setContado).catch((e) => setError(e.message))
+  }, [cierre.id])
 
   async function continuar() {
     await Promise.all([...guardadosPendientes.current].map((vaciar) => vaciar()))
@@ -41,6 +48,19 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   const actualizarLocal = (id, cambios) =>
     setClientes((lista) => lista.map((c) => (c.id === id ? { ...c, ...cambios } : c)))
 
+  function cambiarModo(m) {
+    setModo(m)
+    window.scrollTo(0, 0)
+  }
+
+  if (modo === 'contado') {
+    return (
+      <Contado cierre={cierre} clientes={clientes ?? []} jugadas={contado} setJugadas={setContado}
+        onVolver={() => cambiarModo('clientes')} />
+    )
+  }
+  const resumenContado = resumirContado(contado)
+
   return (
     <section className="etapa aparecer">
       <div className="etapa-titulo">
@@ -69,6 +89,20 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
           />
         ))}
       </ul>
+
+      {clientes?.length > 0 && (
+        <button className="tarjeta-contado" onClick={() => cambiarModo('contado')}>
+          <span>
+            <b>Jugadas de contado</b>
+            <small>
+              {resumenContado.cantidad
+                ? `${resumenContado.cantidad} jugada${resumenContado.cantidad > 1 ? 's' : ''} · jugado ${dinero(resumenContado.monto)}`
+                : 'Opcional · si algún cliente jugó de contado hoy'}
+            </small>
+          </span>
+          <strong>{resumenContado.cantidad ? dinero(resumenContado.neto) : 'Abrir →'}</strong>
+        </button>
+      )}
 
       <div className="acciones pie">
         <button className="btn secundario" onClick={onAtras}>Atrás</button>

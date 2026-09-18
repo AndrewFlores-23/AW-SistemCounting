@@ -91,6 +91,11 @@ export default function App() {
       <main className="contenido">
         {error && <p className="aviso error">{error} <button className="btn fantasma" onClick={cargarCierre}>Reintentar</button></p>}
         {vista === 'registros' && <Registros onVolver={() => setVista('cierre')} />}
+        {vista === 'cierre' && cierre && cierre.fecha < fecha && cierre.etapa < 4 && (
+          <p className="aviso pendiente">
+            Tenés pendiente el cierre del <b>{fechaLarga(cierre.fecha)}</b>. Finalizalo para habilitar el de hoy.
+          </p>
+        )}
         {vista === 'cierre' && <>
           {!cierre && !error && <Cargando texto="Preparando el cierre de hoy…" />}
           {cierre?.etapa === 1 && (
@@ -99,7 +104,10 @@ export default function App() {
           )}
           {cierre?.etapa === 2 && <Etapa2 cierre={cierre} onAtras={() => irAEtapa(1)} onSiguiente={() => irAEtapa(3)} />}
           {cierre?.etapa === 3 && <Etapa3 cierre={cierre} setCierre={setCierre} onAtras={() => irAEtapa(2)} />}
-          {cierre?.etapa === 4 && <Fin cierre={cierre} onSalir={salir} onVerRegistros={() => setVista('registros')} />}
+          {cierre?.etapa === 4 && (
+            <Fin cierre={cierre} hoy={fecha} onSalir={salir} onContinuar={cargarCierre}
+              onVerRegistros={() => setVista('registros')} />
+          )}
         </>}
       </main>
 

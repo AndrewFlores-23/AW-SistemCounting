@@ -14,7 +14,7 @@ const leer = () => {
     return vacia()
   }
 }
-const vacia = () => ({ sesion: null, cierres: [], clientes: [], movimientos: [], bitacora: [] })
+const vacia = () => ({ sesion: null, cierres: [], clientes: [], movimientos: [], contado: [], bitacora: [] })
 const escribir = (db) => localStorage.setItem(CLAVE, JSON.stringify(db))
 const id = () => crypto.randomUUID()
 const espera = () => new Promise((r) => setTimeout(r, 120))
@@ -46,6 +46,10 @@ export async function cerrarSesion() {
 export async function obtenerCierre(fecha) {
   await espera()
   const db = leer()
+  const pendiente = db.cierres
+    .filter((x) => x.vendedor_id === db.sesion && x.fecha < fecha && x.etapa < 4)
+    .sort((a, b) => b.fecha.localeCompare(a.fecha))[0]
+  if (pendiente) return pendiente
   let c = db.cierres.find((x) => x.vendedor_id === db.sesion && x.fecha === fecha)
   if (!c) {
     c = { id: id(), vendedor_id: db.sesion, fecha, ventas: 0, comision: 0, premios: 0, balance: 0, etapa: 1 }
@@ -158,4 +162,28 @@ export async function movimientosDelCierre(cierreId) {
       const c = db.clientes.find((x) => x.id === m.cliente_id)
       return { ...m, nombre: c?.nombre, activo: c?.activo }
     })
+}
+
+export async function listarContado(cierreId) {
+  await espera()
+  const db = leer()
+  return (db.contado ?? [])
+    .filter((j) => j.cierre_id === cierreId)
+    .map((j) => ({ ...j, nombre: db.clientes.find((c) => c.id === j.cliente_id)?.nombre }))
+}
+
+export async function agregarContado(j) {
+  const db = leer()
+  db.contado ??= []
+  const premio = j.tiene_premio ? j.premio : 0
+  const fila = { ...j, premio, neto: j.monto - premio, id: id(), vendedor_id: db.sesion, creado_en: new Date().toISOString() }
+  db.contado.push(fila); anotar(db, 'jugadas_contado', 'INSERT', null, fila); escribir(db)
+  return fila
+}
+
+export async function eliminarContado(contadoId) {
+  const db = leer()
+  const fila = db.contado.find((j) => j.id === contadoId)
+  db.contado = db.contado.filter((j) => j.id !== contadoId)
+  anotar(db, 'jugadas_contado', 'DELETE', fila, null); escribir(db)
 }

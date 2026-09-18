@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
 import { dinero, fechaLarga } from '../lib/formato.js'
-import { Cargando, Fila, NotasDelDia } from '../componentes.jsx'
+import { Cargando, Fila, NotasDelDia, TablaContado } from '../componentes.jsx'
 
 const NOMBRE_ETAPA = { 1: 'En ventas', 2: 'En clientes', 3: 'En resumen' }
 
@@ -50,10 +50,12 @@ export default function Registros({ onVolver }) {
 
 function DetalleCierre({ cierre, onVolver }) {
   const [movs, setMovs] = useState(null)
+  const [contado, setContado] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     datos.movimientosDelCierre(cierre.id).then(setMovs).catch((e) => setError(e.message))
+    datos.listarContado(cierre.id).then(setContado).catch((e) => setError(e.message))
   }, [cierre.id])
 
   const suma = (campo) => (movs ?? []).reduce((t, m) => t + Number(m[campo] || 0), 0)
@@ -62,7 +64,7 @@ function DetalleCierre({ cierre, onVolver }) {
     <section className="etapa aparecer">
       <button className="btn fantasma volver" onClick={onVolver}>← Todos los registros</button>
       <h2>{fechaLarga(cierre.fecha)}</h2>
-      {cierre.etapa < 4 && <p className="subtitulo">Cierre sin finalizar</p>}
+      <p className="subtitulo">{cierre.etapa === 4 ? 'Solo lectura · cierre finalizado' : 'Cierre sin finalizar'}</p>
       {error && <p className="aviso error">{error}</p>}
 
       <div className="tarjeta">
@@ -110,6 +112,10 @@ function DetalleCierre({ cierre, onVolver }) {
             </table>
           </div>
         )}
+      </div>
+      <div className="tarjeta">
+        <h4>Contado {contado?.length > 0 && <small>({contado.length} jugadas)</small>}</h4>
+        {contado === null && !error ? <Cargando texto="Cargando contado…" /> : <TablaContado jugadas={contado ?? []} />}
       </div>
       {movs && <NotasDelDia filas={movs} />}
     </section>

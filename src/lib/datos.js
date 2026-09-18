@@ -12,4 +12,5 @@ export const {
   listarClientes, agregarCliente, actualizarSaldoInicial, eliminarCliente,
   guardarMovimiento, finalizarCierre,
   listarCierres, movimientosDelCierre,
+  listarContado, agregarContado, eliminarContado,
 } = api

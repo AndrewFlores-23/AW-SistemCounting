@@ -40,3 +40,19 @@ export const redondear = (n) => Math.round(n * 100) / 100
 export const balanceDe = (c) => redondear(aNumero(c.ventas) - aNumero(c.comision) - aNumero(c.premios))
 export const saldoDe = (m) =>
   redondear(aNumero(m.saldo_anterior) + aNumero(m.jugadas) - aNumero(m.abono) - aNumero(m.premios))
+
+// Agrupa las jugadas de contado por cliente y saca los totales del día
+export function resumirContado(jugadas) {
+  const porCliente = new Map()
+  for (const j of jugadas) {
+    const g = porCliente.get(j.cliente_id) ?? { cliente_id: j.cliente_id, nombre: j.nombre, jugadas: 0, monto: 0, premio: 0, neto: 0 }
+    g.jugadas += 1
+    g.monto += Number(j.monto)
+    g.premio += Number(j.premio)
+    g.neto += Number(j.monto) - Number(j.premio)
+    porCliente.set(j.cliente_id, g)
+  }
+  const clientes = [...porCliente.values()]
+  const total = (campo) => redondear(clientes.reduce((t, c) => t + c[campo], 0))
+  return { clientes, monto: total('monto'), premio: total('premio'), neto: total('neto'), cantidad: jugadas.length }
+}

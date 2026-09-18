@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { aNumero } from './lib/formato.js'
+import { aNumero, dinero, resumirContado } from './lib/formato.js'
 
 // Logo de texto; `tamano` es el ancho aproximado en píxeles
 export function Logo({ tamano = 96 }) {
@@ -92,6 +92,37 @@ export function NotasDelDia({ filas }) {
       <ul className="lista-notas">
         {conNota.map((f) => <li key={f.id}><b>{f.nombre}</b><p>{f.nota}</p></li>)}
       </ul>
+    </div>
+  )
+}
+
+// Totales de contado por cliente (resumen, registros y confirmación)
+export function TablaContado({ jugadas }) {
+  const r = resumirContado(jugadas)
+  if (!r.cantidad) return <p className="vacio">Sin jugadas de contado.</p>
+  return (
+    <div className="tabla-scroll">
+      <table className="tabla">
+        <thead><tr><th>Cliente</th><th>Jugado</th><th>Premios</th><th>Total</th></tr></thead>
+        <tbody>
+          {r.clientes.map((c) => (
+            <tr key={c.cliente_id}>
+              <td>{c.nombre}{c.jugadas > 1 && <small className="veces"> ×{c.jugadas}</small>}</td>
+              <td>{dinero(c.monto)}</td>
+              <td>{c.premio ? `− ${dinero(c.premio)}` : '—'}</td>
+              <td className={c.neto < 0 ? 'negativo' : ''}><b>{dinero(c.neto)}</b></td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Totales</td>
+            <td>{dinero(r.monto)}</td>
+            <td>{r.premio ? `− ${dinero(r.premio)}` : '—'}</td>
+            <td className={r.neto < 0 ? 'negativo' : ''}><b>{dinero(r.neto)}</b></td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   )
 }

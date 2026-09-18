@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as datos from '../lib/datos.js'
 import { dinero, fechaLarga, saldoDe } from '../lib/formato.js'
-import { Cargando, Confirmar, Fila, NotasDelDia } from '../componentes.jsx'
+import { Cargando, Confirmar, Fila, NotasDelDia, TablaContado } from '../componentes.jsx'
 
 export default function Etapa3({ cierre, setCierre, onAtras }) {
   const [clientes, setClientes] = useState(null)
@@ -9,10 +9,12 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
   const [confirmando, setConfirmando] = useState(false)
   const [error, setError] = useState('')
   const [finalizando, setFinalizando] = useState(false)
+  const [contado, setContado] = useState(null)
 
   useEffect(() => {
     datos.listarClientes(cierre.fecha).then(setClientes).catch((e) => setError(e.message))
-  }, [cierre.fecha])
+    datos.listarContado(cierre.id).then(setContado).catch((e) => setError(e.message))
+  }, [cierre.fecha, cierre.id])
 
   // Clientes sin movimiento hoy mantienen su saldo anterior
   const filas = (clientes ?? []).map((c) => {
@@ -86,6 +88,11 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
         {filas.length === 0 && clientes !== null && <p className="vacio">Sin clientes registrados.</p>}
       </div>
 
+      <div className="tarjeta">
+        <h4>Contado {contado?.length > 0 && <small>({contado.length} jugadas)</small>}</h4>
+        {contado === null ? <Cargando texto="Cargando contado…" /> : <TablaContado jugadas={contado} />}
+      </div>
+
       <NotasDelDia filas={filas} />
 
       <label className="check">
@@ -95,7 +102,7 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
 
       <div className="acciones pie">
         <button className="btn secundario" onClick={onAtras}>Atrás</button>
-        <button className="btn primario" disabled={!revisado || clientes === null} onClick={() => setConfirmando(true)}>
+        <button className="btn primario" disabled={!revisado || clientes === null || contado === null} onClick={() => setConfirmando(true)}>
           Finalizar cierre
         </button>
       </div>
@@ -103,7 +110,7 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
       {confirmando && (
         <Confirmar titulo="¿Finalizar el cierre de hoy?" textoSi="Finalizar" textoNo="Cancelar"
           onSi={finalizar} onNo={() => setConfirmando(false)}>
-          <p>Después de finalizar ya no se pueden cambiar los datos de hoy.</p>
+          <p>Después de finalizar ya no se puede cambiar nada de este día. Solo se podrá consultar en Registros, y el próximo cierre se habilita mañana.</p>
         </Confirmar>
       )}
       {finalizando && <Cargando velo texto="Guardando el cierre…" />}

@@ -35,7 +35,12 @@ export async function cerrarSesion() {
 }
 
 // ───── Cierre del día ─────
+// Si quedó un cierre de un día anterior sin finalizar, se termina ese primero;
+// el de hoy se habilita cuando no hay pendientes.
 export async function obtenerCierre(fecha) {
+  const pendiente = revisar(await sb.from('cierres').select('*')
+    .lt('fecha', fecha).lt('etapa', 4).order('fecha', { ascending: false }).limit(1).maybeSingle())
+  if (pendiente) return pendiente
   const existente = revisar(await sb.from('cierres').select('*').eq('fecha', fecha).maybeSingle())
   if (existente) return existente
   return revisar(await sb.from('cierres').insert({ fecha }).select().single())
@@ -93,4 +98,22 @@ export async function movimientosDelCierre(cierreId) {
   const filas = revisar(await sb.from('movimientos_cliente')
     .select('*, clientes(nombre, activo)').eq('cierre_id', cierreId).order('creado_en'))
   return filas.map(({ clientes, ...m }) => ({ ...m, nombre: clientes?.nombre, activo: clientes?.activo }))
+}
+
+// ───── Jugadas de contado ─────
+export async function listarContado(cierreId) {
+  const filas = revisar(await sb.from('jugadas_contado')
+    .select('*, clientes(nombre)').eq('cierre_id', cierreId).order('creado_en'))
+  return filas.map(({ clientes, ...j }) => ({ ...j, nombre: clientes?.nombre }))
+}
+
+export async function agregarContado(j) {
+  return revisar(await sb.from('jugadas_contado').insert({
+    cierre_id: j.cierre_id, cliente_id: j.cliente_id, fecha: j.fecha,
+    monto: j.monto, tiene_premio: j.tiene_premio, premio: j.tiene_premio ? j.premio : 0,
+  }).select().single())
+}
+
+export async function eliminarContado(id) {
+  revisar(await sb.from('jugadas_contado').delete().eq('id', id))
 }
