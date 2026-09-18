@@ -464,6 +464,10 @@ input, textarea { font: inherit; }
 .ranking-barra { height: 8px; background: var(--superficie-2); border-radius: 99px; overflow: hidden; }
 .ranking-barra i { display: block; height: 100%; background: var(--acento); border-radius: 99px; }
 
+.cuadre-bien { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.cuadre-bien b { font-size: 1.3rem; color: var(--positivo); }
+.cuadre-bien small { color: var(--texto-2); }
+
 /* ───── Registros ───── */
 .lista-registros { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .registro {

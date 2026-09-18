@@ -29,12 +29,18 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
   }, [cierre.fecha])
 
   const [alertaCuadre, setAlertaCuadre] = useState(false)
+  const [cuadreBien, setCuadreBien] = useState(false)
 
   async function continuar() {
     await Promise.all([...guardadosPendientes.current].map((vaciar) => vaciar()))
     // Si lo registrado no coincide con la etapa 1, se avisa antes de seguir
-    if (!calcularCuadre(cierre, clientes ?? [], contado).cuadra) setAlertaCuadre(true)
-    else onSiguiente()
+    if (!calcularCuadre(cierre, clientes ?? [], contado).cuadra) {
+      setAlertaCuadre(true)
+      return
+    }
+    // Todo cuadra exacto: se avisa un momento y se sigue al resumen
+    setCuadreBien(true)
+    setTimeout(onSiguiente, 1400)
   }
 
   async function cargar() {
@@ -137,6 +143,16 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
           onSi={() => { setAlertaCuadre(false); onSiguiente() }}>
           <Cuadre cuadre={cuadre} />
         </Confirmar>
+      )}
+
+      {cuadreBien && (
+        <div className="velo velo-carga" role="status" aria-live="assertive">
+          <div className="cuadre-bien aparecer">
+            <span className="fin-check" aria-hidden="true">✓</span>
+            <b>El cuadre está bien hecho</b>
+            <small>Pasando al resumen…</small>
+          </div>
+        </div>
       )}
 
       {porEliminar && (

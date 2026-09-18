@@ -134,7 +134,7 @@ export function Cuadre({ cuadre }) {
   return (
     <div className={`cuadre ${tono}`} role="status" aria-live="polite">
       {cuadre.cuadra ? (
-        <p className="cuadre-msj">✓ Cuadra</p>
+        <p className="cuadre-msj">✓ El cuadre está bien hecho</p>
       ) : (
         <ul className="cuadre-lista">
           <MensajeCuadre de="jugadas" f={cuadre.ventas} />
