@@ -23,7 +23,7 @@ export default function App() {
   useEffect(() => {
     const animacion = new Promise((r) => setTimeout(r, 2100))
     Promise.all([datos.sesionActual().catch(() => null), animacion]).then(([u]) => {
-      setUsuario(u)
+      setUsuario(u ?? null)
       setIntro('saliendo')
       setTimeout(() => setIntro('lista'), 450)
     })

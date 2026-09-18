@@ -11,11 +11,12 @@ function revisar({ data, error }) {
   return data
 }
 
-const aUsuario = (u) => u && {
+// Sin sesión = null (undefined significa "todavía cargando" en App)
+const aUsuario = (u) => u ? {
   id: u.id,
   usuario: u.email?.split('@')[0],
   nombre: u.user_metadata?.nombre || u.email?.split('@')[0],
-}
+} : null
 
 // ───── Sesión ─────
 export async function iniciarSesion(usuario, clave) {
