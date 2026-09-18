@@ -127,31 +127,28 @@ export function TablaContado({ jugadas }) {
   )
 }
 
-// Cuadre: lo anotado en la etapa 1 contra lo registrado en clientes + contado
-export function Cuadre({ cuadre, compacto }) {
+// Cuadre: un solo mensaje grande; debajo, jugado y premios como referencia
+export function Cuadre({ cuadre }) {
+  const tono = cuadre.cuadra ? 'ok' : cuadre.dinero > 0 ? 'sobra' : 'falta'
+  const mensaje = cuadre.cuadra ? '✓ Cuadra'
+    : cuadre.dinero > 0 ? `Sobra dinero · ${dinero(cuadre.dinero)}`
+    : cuadre.dinero < 0 ? `Hace falta dinero · ${dinero(-cuadre.dinero)}`
+    : 'Revisá los montos'
   return (
-    <div className={`cuadre ${cuadre.cuadra ? 'ok' : 'mal'}`} role="status" aria-live="polite">
-      <div className="cuadre-cabeza">
-        <h4>Cuadre del día</h4>
-        <b>{cuadre.cuadra ? '✓ Cuadra' : '⚠ No cuadra'}</b>
+    <div className={`cuadre ${tono}`} role="status" aria-live="polite">
+      <p className="cuadre-msj">{mensaje}</p>
+      <div className="cuadre-ref">
+        <FilaCuadre titulo="Jugado" f={cuadre.ventas} />
+        <FilaCuadre titulo="Premios" f={cuadre.premios} />
       </div>
-      <FilaCuadre titulo="Ventas" f={cuadre.ventas} compacto={compacto} />
-      <FilaCuadre titulo="Premios" f={cuadre.premios} compacto={compacto} />
     </div>
   )
 }
 
-function FilaCuadre({ titulo, f, compacto }) {
-  const estado = f.diferencia === 0 ? 'Cuadra'
-    : f.diferencia < 0 ? `Faltan ${dinero(-f.diferencia)}` : `Sobran ${dinero(f.diferencia)}`
+function FilaCuadre({ titulo, f }) {
   return (
-    <div className="cuadre-fila">
-      <div className="cuadre-linea">
-        <span>{titulo}</span>
-        <span className="cuadre-montos">{dinero(f.registrado)} <small>de {dinero(f.anotado)}</small></span>
-        <em className={f.diferencia === 0 ? 'bien' : 'dif'}>{estado}</em>
-      </div>
-      {!compacto && <small className="cuadre-detalle">Clientes {dinero(f.clientes)} + contado {dinero(f.contado)}</small>}
-    </div>
+    <p className={f.diferencia === 0 ? '' : 'distinto'}>
+      <span>{titulo}</span> {dinero(f.registrado)} <small>de {dinero(f.anotado)}</small>
+    </p>
   )
 }

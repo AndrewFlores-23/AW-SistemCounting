@@ -118,11 +118,10 @@ export default function Etapa2({ cierre, onAtras, onSiguiente }) {
       </div>
 
       {alertaCuadre && (
-        <Confirmar titulo="Los montos no coinciden" textoSi="Continuar igual" textoNo="Revisar"
+        <Confirmar titulo="Los montos no cuadran" textoSi="Continuar igual" textoNo="Revisar"
           onNo={() => setAlertaCuadre(false)}
           onSi={() => { setAlertaCuadre(false); onSiguiente() }}>
-          <Cuadre cuadre={cuadre} compacto />
-          <p className="nota-alerta">Lo registrado en clientes y contado no es igual a la venta y los premios anotados en la etapa 1.</p>
+          <Cuadre cuadre={cuadre} />
         </Confirmar>
       )}
 

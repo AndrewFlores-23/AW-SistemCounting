@@ -68,5 +68,7 @@ export function calcularCuadre(cierre, clientes, contado) {
   }
   const ventas = fila(cierre.ventas, sumar('jugadas'), c.monto)
   const premios = fila(cierre.premios, sumar('premios'), c.premio)
-  return { ventas, premios, cuadra: ventas.diferencia === 0 && premios.diferencia === 0 }
+  // Positivo = sobra dinero; negativo = hace falta
+  const dinero = redondear(ventas.diferencia - premios.diferencia)
+  return { ventas, premios, dinero, cuadra: ventas.diferencia === 0 && premios.diferencia === 0 }
 }

@@ -114,7 +114,7 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
         <Confirmar titulo="¿Finalizar el cierre de hoy?" textoSi="Finalizar" textoNo="Cancelar"
           onSi={finalizar} onNo={() => setConfirmando(false)}>
           {cuadre && !cuadre.cuadra && (
-            <p className="aviso error">Ojo: los montos registrados no coinciden con la venta y los premios de la etapa 1.</p>
+            <p className="aviso error">Ojo: los montos no cuadran con lo anotado al inicio.</p>
           )}
           <p>Después de finalizar ya no se puede cambiar nada de este día. Solo se podrá consultar en Registros, y el próximo cierre se habilita mañana.</p>
         </Confirmar>
