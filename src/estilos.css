@@ -39,7 +39,16 @@ input, textarea { font: inherit; }
 
 /* ───── Campos ───── */
 .campo { display: flex; flex-direction: column; gap: 6px; }
-.campo > span { font-size: .85rem; color: var(--texto-2); }
+.campo > span, .campo > label > span { font-size: .85rem; color: var(--texto-2); }
+.campo-clave { position: relative; }
+.campo-clave input { padding-right: 52px; }
+.ver-clave {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 40px; display: grid; place-items: center;
+  background: none; border: 0; border-radius: 8px; color: var(--texto-2);
+}
+.ver-clave:hover, .ver-clave[aria-pressed="true"] { color: var(--acento); }
+.ver-clave:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--acento-suave); }
 .campo input, .campo textarea, .campo select {
   width: 100%; background: var(--fondo); color: var(--texto); border: 1px solid var(--borde);
   border-radius: 10px; padding: 12px 14px; font-size: 1.05rem; outline: none;
