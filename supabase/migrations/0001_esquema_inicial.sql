@@ -4,7 +4,7 @@
 
 -- Día actual en hora de Costa Rica (UTC-6, sin horario de verano)
 create or replace function public.hoy_cr() returns date
-language sql stable as $$ select (now() at time zone 'America/Costa_Rica')::date $$;
+language sql stable set search_path = '' as $$ select (now() at time zone 'America/Costa_Rica')::date $$;
 
 -- ───────── Cierres (etapa 1: ventas, comisión, premios) ─────────
 create table public.cierres (
@@ -84,7 +84,7 @@ begin
 end $$;
 
 create or replace function public.tocar_actualizado() returns trigger
-language plpgsql as $$ begin new.actualizado_en := now(); return new; end $$;
+language plpgsql set search_path = '' as $$ begin new.actualizado_en := now(); return new; end $$;
 
 create trigger cierres_actualizado before update on public.cierres
   for each row execute function public.tocar_actualizado();
@@ -95,14 +95,14 @@ create trigger movimientos_actualizado before update on public.movimientos_clien
 create trigger bitacora_cierres after insert or delete on public.cierres
   for each row execute function public.registrar_bitacora();
 create trigger bitacora_cierres_upd after update on public.cierres
-  for each row when (old.ventas, old.comision, old.premios, old.etapa)
-    is distinct from (new.ventas, new.comision, new.premios, new.etapa)
+  for each row when ((old.ventas, old.comision, old.premios, old.etapa)
+    is distinct from (new.ventas, new.comision, new.premios, new.etapa))
   execute function public.registrar_bitacora();
 create trigger bitacora_movimientos after insert or delete on public.movimientos_cliente
   for each row execute function public.registrar_bitacora();
 create trigger bitacora_movimientos_upd after update on public.movimientos_cliente
-  for each row when (old.saldo_anterior, old.jugadas, old.abono, old.premios)
-    is distinct from (new.saldo_anterior, new.jugadas, new.abono, new.premios)
+  for each row when ((old.saldo_anterior, old.jugadas, old.abono, old.premios)
+    is distinct from (new.saldo_anterior, new.jugadas, new.abono, new.premios))
   execute function public.registrar_bitacora();
 create trigger bitacora_clientes after insert or update or delete on public.clientes
   for each row execute function public.registrar_bitacora();
