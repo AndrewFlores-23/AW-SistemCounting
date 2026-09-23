@@ -200,6 +200,7 @@ function Cliente({ cliente, cierre, cuentaAlta, abierto, onAlternar, onEliminar,
     abono: cliente.abono ?? 0,
     premios: cliente.premios ?? 0,
     nota: cliente.nota ?? '',
+    deposito: Boolean(cliente.deposito),
   })
   const [estado, setEstado] = useState('') // '', 'guardando', 'guardado', 'error'
   const temporizador = useRef()
@@ -271,6 +272,7 @@ function Cliente({ cliente, cierre, cuentaAlta, abierto, onAlternar, onEliminar,
           {cliente.nombre}
           {!cliente.tiene_historial && <em className="etiqueta">Nuevo</em>}
           {conMovimiento && <em className="etiqueta ok">Registrado</em>}
+          {mov.deposito && <em className="etiqueta ok">✓ Depósito</em>}
           {cuentaAlta && <em className="etiqueta alta">⚠ Cuenta alta</em>}
           {cliente.nota_anterior && <em className="etiqueta nota" title={cliente.nota_anterior}>📝 Nota</em>}
         </span>
@@ -295,9 +297,19 @@ function Cliente({ cliente, cierre, cuentaAlta, abierto, onAlternar, onEliminar,
               onCambio={(n) => cambiar('saldo_anterior', n)} />
           )}
           <CampoMonto etiqueta="Jugadas de hoy" valor={mov.jugadas} onCambio={(n) => cambiar('jugadas', n)} autoFocus />
-          <div className="dos-columnas">
-            <CampoMonto etiqueta="Abono" valor={mov.abono} onCambio={(n) => cambiar('abono', n)} />
-            <CampoMonto etiqueta="Premios" valor={mov.premios} onCambio={(n) => cambiar('premios', n)} />
+          <CampoMonto etiqueta="Abono" valor={mov.abono} onCambio={(n) => cambiar('abono', n)} />
+          <label className={`casilla-deposito ${mov.deposito ? 'marcada' : ''}`}>
+            <input type="checkbox" checked={mov.deposito} onChange={(e) => cambiar('deposito', e.target.checked)} />
+            <span>
+              <b>Depósito</b>
+              <small>{mov.deposito ? 'El abono ya está en la cuenta' : 'Marcar cuando el abono esté en la cuenta'}</small>
+            </span>
+          </label>
+          <CampoMonto etiqueta="Premios" valor={mov.premios} onCambio={(n) => cambiar('premios', n)} />
+
+          <div className={`total chico ${total < 0 ? 'negativo' : ''}`}>
+            <span>Saldo total</span>
+            <strong>{dinero(total)}</strong>
           </div>
 
           <label className="campo">
@@ -305,17 +317,11 @@ function Cliente({ cliente, cierre, cuentaAlta, abierto, onAlternar, onEliminar,
             <textarea
               rows={2}
               maxLength={280}
-              placeholder="Ej.: quedó de abonar el viernes"
               value={mov.nota}
               onChange={(e) => cambiar('nota', e.target.value)}
             />
             {limpiarNota(mov.nota) && <AvisoRecordatorio nota={mov.nota} fecha={cierre.fecha} />}
           </label>
-
-          <div className={`total chico ${total < 0 ? 'negativo' : ''}`}>
-            <span>Saldo total</span>
-            <strong>{dinero(total)}</strong>
-          </div>
 
           <div className="cliente-pie">
             <small className={`estado ${estado}`}>

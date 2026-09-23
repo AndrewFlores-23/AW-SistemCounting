@@ -141,8 +141,8 @@ input, textarea { font: inherit; }
   width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px;
   background: none; border: 0; color: var(--texto); padding: 16px 18px; text-align: left; min-height: 56px;
 }
-.cliente-nombre { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 600; }
-.cliente-saldo { font-variant-numeric: tabular-nums; font-weight: 600; }
+.cliente-nombre { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; font-size: 1.3rem; line-height: 1.25; }
+.cliente-saldo { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 1.1rem; white-space: nowrap; }
 .etiqueta {
   font-style: normal; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px;
   background: var(--acento-suave); color: var(--acento);
@@ -164,7 +164,15 @@ input, textarea { font: inherit; }
   background: var(--superficie-2); font-variant-numeric: tabular-nums;
 }
 .saldo-fijo span { color: var(--texto-2); }
-.dos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.casilla-deposito {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; cursor: pointer;
+  border: 1px dashed var(--borde); background: var(--superficie-2); margin-top: -6px;
+}
+.casilla-deposito input { width: 22px; height: 22px; accent-color: var(--positivo); flex-shrink: 0; cursor: pointer; }
+.casilla-deposito span { display: flex; flex-direction: column; gap: 2px; }
+.casilla-deposito small { color: var(--texto-2); font-size: .8rem; }
+.casilla-deposito.marcada { border-style: solid; border-color: rgba(63, 185, 80, .5); background: rgba(63, 185, 80, .1); }
+.casilla-deposito.marcada b { color: var(--positivo); }
 .cliente-pie { display: flex; justify-content: space-between; align-items: center; }
 .estado { color: var(--texto-2); font-size: .8rem; }
 .estado.guardado { color: var(--positivo); }
@@ -484,3 +492,13 @@ input, textarea { font: inherit; }
 .tabla .eliminado { color: var(--texto-2); font-style: italic; }
 
 .marca-demo { text-align: center; font-size: .75rem; color: var(--texto-2); margin-top: 32px; }
+.marca-deposito { color: var(--positivo); font-weight: 700; }
+.depositos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .depositos { grid-template-columns: 1fr; } }
+.grupo-deposito { border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.grupo-deposito > b { font-size: .85rem; margin-bottom: 4px; }
+.grupo-deposito.faltan { background: rgba(210, 153, 34, .08); border: 1px solid rgba(210, 153, 34, .35); }
+.grupo-deposito.faltan > b { color: #d29922; }
+.grupo-deposito.confirmados { background: rgba(63, 185, 80, .08); border: 1px solid rgba(63, 185, 80, .35); }
+.grupo-deposito.confirmados > b { color: var(--positivo); }
+.grupo-deposito .vacio { font-size: .85rem; }

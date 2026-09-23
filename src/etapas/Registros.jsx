@@ -174,7 +174,7 @@ function DetalleNormal({ cierre, onVolver }) {
                     </td>
                     <td>{dinero(m.saldo_anterior)}</td>
                     <td>{dinero(m.jugadas)}</td>
-                    <td>{dinero(m.abono)}</td>
+                    <td>{dinero(m.abono)}{m.deposito && <span className="marca-deposito" title="Depósito confirmado"> ✓</span>}</td>
                     <td>{dinero(m.premios)}</td>
                     <td className={m.saldo_total < 0 ? 'negativo' : ''}><b>{dinero(m.saldo_total)}</b></td>
                   </tr>

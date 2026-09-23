@@ -87,6 +87,7 @@ export async function listarClientes(fecha) {
         mov_id: hoy?.id ?? null, jugadas: hoy?.jugadas ?? null, abono: hoy?.abono ?? null,
         premios: hoy?.premios ?? null, saldo_total: hoy?.saldo_total ?? null, nota: hoy?.nota ?? null,
         nota_anterior: previos[0]?.nota?.trim() || null, fecha_nota_anterior: previos[0]?.fecha ?? null,
+        deposito: Boolean(hoy?.deposito),
       }
     })
 }

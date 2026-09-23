@@ -22,6 +22,10 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
     return { ...c, ...m, saldo_total: saldoDe(m) }
   })
   const cuadre = clientes && contado ? calcularCuadre(cierre, filas, contado) : null
+  // Solo cuentan los clientes que abonaron hoy
+  const conAbono = filas.filter((f) => Number(f.abono) > 0)
+  const depositados = conAbono.filter((f) => f.deposito)
+  const faltanDeposito = conAbono.filter((f) => !f.deposito)
   const suma = (campo) => filas.reduce((t, f) => t + Number(f[campo] || 0), 0)
 
   async function finalizar() {
@@ -69,7 +73,7 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
                     <td>{f.nombre}</td>
                     <td>{dinero(f.saldo_anterior)}</td>
                     <td>{dinero(f.jugadas)}</td>
-                    <td>{dinero(f.abono)}</td>
+                    <td>{dinero(f.abono)}{f.deposito && <span className="marca-deposito" title="Depósito confirmado"> ✓</span>}</td>
                     <td>{dinero(f.premios)}</td>
                     <td className={f.saldo_total < 0 ? 'negativo' : ''}><b>{dinero(f.saldo_total)}</b></td>
                   </tr>
@@ -90,6 +94,24 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
         )}
         {filas.length === 0 && clientes !== null && <p className="vacio">Sin clientes registrados.</p>}
       </div>
+
+      {conAbono.length > 0 && (
+        <div className="tarjeta">
+          <h4>Depósitos <small>({depositados.length} de {conAbono.length} confirmados)</small></h4>
+          <div className="depositos">
+            <div className="grupo-deposito faltan">
+              <b>Faltan · {dinero(faltanDeposito.reduce((t, f) => t + Number(f.abono), 0))}</b>
+              {faltanDeposito.length === 0 && <p className="vacio">Todos los abonos están depositados.</p>}
+              {faltanDeposito.map((f) => <Fila key={f.id} etiqueta={f.nombre} valor={dinero(f.abono)} />)}
+            </div>
+            <div className="grupo-deposito confirmados">
+              <b>✓ Confirmados · {dinero(depositados.reduce((t, f) => t + Number(f.abono), 0))}</b>
+              {depositados.length === 0 && <p className="vacio">Ningún depósito confirmado todavía.</p>}
+              {depositados.map((f) => <Fila key={f.id} etiqueta={f.nombre} valor={dinero(f.abono)} />)}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="tarjeta">
         <h4>Contado {contado?.length > 0 && <small>({contado.length} jugadas)</small>}</h4>
