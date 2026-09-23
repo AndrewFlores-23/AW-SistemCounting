@@ -233,7 +233,9 @@ input, textarea { font: inherit; }
 @keyframes respirar { 0%, 100% { transform: scale(.94); opacity: .75; } 50% { transform: scale(1.02); opacity: 1; } }
 @keyframes girar { to { transform: rotate(360deg); } }
 @keyframes parpadeo { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
-.aparecer { animation: aparecer .35s ease-out both; }
+/* backwards y no both: si la animación deja un transform puesto, los avisos (position: fixed)
+   quedan pegados a la sección en vez de centrarse en la pantalla */
+.aparecer { animation: aparecer .35s ease-out backwards; }
 @keyframes aparecer { from { opacity: 0; transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) {
   .cargador-anillo, .cargador-logo img, .cargador-logo .logo-texto, .cargador p, .aparecer { animation-duration: 3s; }
