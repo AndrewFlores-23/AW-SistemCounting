@@ -504,3 +504,5 @@ input, textarea { font: inherit; }
 .grupo-deposito.confirmados { background: rgba(63, 185, 80, .08); border: 1px solid rgba(63, 185, 80, .35); }
 .grupo-deposito.confirmados > b { color: var(--positivo); }
 .grupo-deposito .vacio { font-size: .85rem; }
+.casilla-deposito.compacta { grid-column: 1 / -1; margin: 2px 8px 2px 0; padding: 8px 12px; }
+.casilla-deposito.compacta input { width: 20px; height: 20px; }

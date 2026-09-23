@@ -23,6 +23,19 @@ export default function Contado({ cierre, clientes, jugadas, setJugadas, onVolve
     }
   }
 
+  // Se marca en pantalla de una vez; si no se pudo guardar, se devuelve
+  async function marcarDeposito(j, deposito) {
+    const poner = (valor) => setJugadas((lista) => lista.map((x) => (x.id === j.id ? { ...x, deposito: valor } : x)))
+    poner(deposito)
+    setError('')
+    try {
+      await datos.marcarDepositoContado(j.id, deposito)
+    } catch (e) {
+      poner(!deposito)
+      setError(e.message)
+    }
+  }
+
   async function eliminar() {
     await datos.eliminarContado(porEliminar.id)
     setJugadas(jugadas.filter((j) => j.id !== porEliminar.id))
@@ -57,6 +70,13 @@ export default function Contado({ cierre, clientes, jugadas, setJugadas, onVolve
                   <b className={`contado-neto ${j.neto < 0 ? 'negativo' : ''}`}>{dinero(j.neto)}</b>
                   <button className="btn fantasma quitar" aria-label={`Quitar jugada de ${j.nombre}`}
                     onClick={() => setPorEliminar(j)}>✕</button>
+                  <label className={`casilla-deposito compacta ${j.deposito ? 'marcada' : ''}`}>
+                    <input type="checkbox" checked={Boolean(j.deposito)} onChange={(e) => marcarDeposito(j, e.target.checked)} />
+                    <span>
+                      <b>Depósito</b>
+                      <small>{j.deposito ? 'El pago ya está en la cuenta' : 'Marcar cuando el pago esté en la cuenta'}</small>
+                    </span>
+                  </label>
                 </li>
               ))}
             </ul>

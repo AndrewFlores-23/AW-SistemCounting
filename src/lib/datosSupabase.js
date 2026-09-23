@@ -116,6 +116,10 @@ export async function agregarContado(j) {
   }).select().single())
 }
 
+export async function marcarDepositoContado(id, deposito) {
+  revisar(await sb.from('jugadas_contado').update({ deposito }).eq('id', id))
+}
+
 export async function eliminarContado(id) {
   revisar(await sb.from('jugadas_contado').delete().eq('id', id))
 }

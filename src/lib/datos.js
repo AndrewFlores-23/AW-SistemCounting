@@ -17,7 +17,7 @@ export const {
   agregarCliente, actualizarSaldoInicial, eliminarCliente,
   guardarMovimiento, finalizarCierre,
   listarCierres,
-  listarContado, agregarContado, eliminarContado,
+  listarContado, agregarContado, eliminarContado, marcarDepositoContado,
   diasFaltantes, registrarDiasFaltantes, registrarAjuste,
   guardarRecordatorio, quitarRecordatorio, listarRecordatorios, marcarRecordatorio,
   cierresEntre, movimientosEntre, contadoEntre,

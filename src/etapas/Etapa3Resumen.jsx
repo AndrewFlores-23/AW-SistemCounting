@@ -22,10 +22,17 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
     return { ...c, ...m, saldo_total: saldoDe(m) }
   })
   const cuadre = clientes && contado ? calcularCuadre(cierre, filas, contado) : null
-  // Solo cuentan los clientes que abonaron hoy
-  const conAbono = filas.filter((f) => Number(f.abono) > 0)
-  const depositados = conAbono.filter((f) => f.deposito)
-  const faltanDeposito = conAbono.filter((f) => !f.deposito)
+  // Pagos por verificar: abonos de hoy y jugadas de contado, cada uno con su casilla Depósito
+  const pagos = [
+    ...filas.filter((f) => Number(f.abono) > 0)
+      .map((f) => ({ id: `abono-${f.id}`, nombre: f.nombre, monto: Number(f.abono), deposito: f.deposito })),
+    ...(contado ?? []).map((j) => ({
+      id: `contado-${j.id}`, nombre: j.nombre, monto: Number(j.monto) - Number(j.premio), deposito: j.deposito, contado: true,
+    })),
+  ].sort((a, b) => (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' }))
+  const depositados = pagos.filter((p) => p.deposito)
+  const faltanDeposito = pagos.filter((p) => !p.deposito)
+  const sumaPagos = (lista) => lista.reduce((t, p) => t + p.monto, 0)
   const suma = (campo) => filas.reduce((t, f) => t + Number(f[campo] || 0), 0)
 
   async function finalizar() {
@@ -95,19 +102,19 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
         {filas.length === 0 && clientes !== null && <p className="vacio">Sin clientes registrados.</p>}
       </div>
 
-      {conAbono.length > 0 && (
+      {pagos.length > 0 && (
         <div className="tarjeta">
-          <h4>Depósitos <small>({depositados.length} de {conAbono.length} confirmados)</small></h4>
+          <h4>Depósitos <small>({depositados.length} de {pagos.length} confirmados)</small></h4>
           <div className="depositos">
             <div className="grupo-deposito faltan">
-              <b>Faltan · {dinero(faltanDeposito.reduce((t, f) => t + Number(f.abono), 0))}</b>
-              {faltanDeposito.length === 0 && <p className="vacio">Todos los abonos están depositados.</p>}
-              {faltanDeposito.map((f) => <Fila key={f.id} etiqueta={f.nombre} valor={dinero(f.abono)} />)}
+              <b>Faltan · {dinero(sumaPagos(faltanDeposito))}</b>
+              {faltanDeposito.length === 0 && <p className="vacio">Todos los pagos están depositados.</p>}
+              {faltanDeposito.map((p) => <PagoDeposito key={p.id} pago={p} />)}
             </div>
             <div className="grupo-deposito confirmados">
-              <b>✓ Confirmados · {dinero(depositados.reduce((t, f) => t + Number(f.abono), 0))}</b>
+              <b>✓ Confirmados · {dinero(sumaPagos(depositados))}</b>
               {depositados.length === 0 && <p className="vacio">Ningún depósito confirmado todavía.</p>}
-              {depositados.map((f) => <Fila key={f.id} etiqueta={f.nombre} valor={dinero(f.abono)} />)}
+              {depositados.map((p) => <PagoDeposito key={p.id} pago={p} />)}
             </div>
           </div>
         </div>
@@ -144,5 +151,14 @@ export default function Etapa3({ cierre, setCierre, onAtras }) {
       )}
       {finalizando && <Cargando velo texto="Guardando el cierre…" />}
     </section>
+  )
+}
+
+function PagoDeposito({ pago }) {
+  return (
+    <Fila
+      etiqueta={<>{pago.nombre} <em className="etiqueta">{pago.contado ? 'Contado' : 'Abono'}</em></>}
+      valor={dinero(pago.monto)}
+    />
   )
 }

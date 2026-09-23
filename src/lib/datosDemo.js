@@ -177,9 +177,17 @@ export async function agregarContado(j) {
   const db = leer()
   db.contado ??= []
   const premio = j.tiene_premio ? j.premio : 0
-  const fila = { ...j, premio, neto: j.monto - premio, id: id(), vendedor_id: db.sesion, creado_en: new Date().toISOString() }
+  const fila = { ...j, premio, neto: j.monto - premio, deposito: false, id: id(), vendedor_id: db.sesion, creado_en: new Date().toISOString() }
   db.contado.push(fila); anotar(db, 'jugadas_contado', 'INSERT', null, fila); escribir(db)
   return fila
+}
+
+export async function marcarDepositoContado(contadoId, deposito) {
+  const db = leer()
+  const i = db.contado.findIndex((j) => j.id === contadoId)
+  const antes = db.contado[i]
+  db.contado[i] = { ...antes, deposito }
+  anotar(db, 'jugadas_contado', 'UPDATE', antes, db.contado[i]); escribir(db)
 }
 
 export async function eliminarContado(contadoId) {
